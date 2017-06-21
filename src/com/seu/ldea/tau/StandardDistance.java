@@ -17,7 +17,7 @@ import java.util.Map.Entry;
 public class StandardDistance {
 
 	private static int INF = Integer.MAX_VALUE;;
-     
+
 	/**
 	 * 创建输入Matrix 首先读取entity-id文件获取有多少个实体，建立多少维的矩阵,其次读取triple文件，为矩阵填充值
 	 * 
@@ -27,7 +27,7 @@ public class StandardDistance {
 	 */
 
 	public static int[][] getMatrix(String entityFile, String tripleFile) {
-         
+
 		int dimension = 0;
 		try {
 			FileReader fileReader1 = new FileReader(new File(entityFile));
@@ -91,10 +91,10 @@ public class StandardDistance {
 		}
 		return matrix;
 	}
-	
-	
+
 	/**
 	 * 迪杰斯特拉方法计算任意两点之间的距离
+	 * 
 	 * @param matrix
 	 * @return
 	 */
@@ -102,49 +102,42 @@ public class StandardDistance {
 
 		return null;
 	}
-	
-	
-	//计算标准距离矩阵
-		public static ArrayList<Entry<Integer, Integer>> sortStandard(int[][] matrix){
-			
-		   int dimension = matrix.length;
-		   //利用linked hashmap保证读入读出顺序一致
-		   LinkedHashMap<Integer, Integer> valueMap = new LinkedHashMap<>();
-			for(int i = 0; i < dimension; i++){
-				for(int j = 0; j < dimension; j++){
-					int id = i* dimension + j;
-				    valueMap.put(id, matrix[i][j]);
-				   // System.out.println(matrix[i][j]);
-				}
+
+	/**
+	 * 将标准距离进行排序
+	 * @param matrix
+	 * @return
+	 */
+	public static ArrayList<Entry<Integer, Integer>> sortStandard(int[][] matrix) {
+		int dimension = matrix.length;
+		// 利用linked hashmap保证读入读出顺序一致
+		LinkedHashMap<Integer, Integer> valueMap = new LinkedHashMap<>();
+		for (int i = 0; i < dimension; i++) {
+			for (int j = 0; j < dimension; j++) {
+				int id = i * dimension + j;
+				valueMap.put(id, matrix[i][j]);
+				// System.out.println(matrix[i][j]);
 			}
-			//hashmap排序
-			ArrayList<Entry<Integer, Integer>> list_data = new ArrayList<>(valueMap.entrySet());
-			System.out.println("Is standard list is empty" + list_data.isEmpty());
-			Collections.sort(list_data, new Comparator<Entry<Integer, Integer>>(){
-					@Override
-					public int compare(Entry<Integer, Integer> o1, Entry<Integer, Integer> o2) {
-						// TODO Auto-generated method stub
-						//升序排序
-						return o1.getValue().compareTo(o2.getValue());
-					}
-			      });
-			//count 用于控制输出前多少位
-			//int count = 0;
-		/*	Iterator<Entry<Integer, Integer>> iterator = list_data.iterator();
-			while(iterator.hasNext()){
-				Entry<Integer, Integer> entry = iterator.next();
-			//	System.out.println(entry.getKey() + "***" + entry.getValue());
-			//count++;
-			 }
-			//System.out.println("############" + valueMap.size());*/
-			return list_data;
+		}
+		// hashmap排序
+		ArrayList<Entry<Integer, Integer>> list_data = new ArrayList<>(valueMap.entrySet());
+		System.out.println("Is standard list is empty" + list_data.isEmpty());
+		Collections.sort(list_data, new Comparator<Entry<Integer, Integer>>() {
+			@Override
+			public int compare(Entry<Integer, Integer> o1, Entry<Integer, Integer> o2) {
+				// TODO Auto-generated method stub
+				// 升序排序
+				return o1.getValue().compareTo(o2.getValue());
 			}
-		
+		});
+
+		return list_data;
+	}
 
 	public static void printMatrix(int[][] matrix) {
 		int length = matrix.length;
-		for (int i = 0; i < length/10; i++) {
-			for (int j = 0; j < length/10; j++) {
+		for (int i = 0; i < length / 10; i++) {
+			for (int j = 0; j < length / 10; j++) {
 				System.out.print(matrix[i][j] + " ");
 			}
 			System.out.println("\n");
@@ -155,11 +148,12 @@ public class StandardDistance {
 		String entityFile = "D:\\rescalInputFile\\icpw-2009-complete\\entity-ids";
 		String tripleFile = "D:\\rescalInputFile\\icpw-2009-complete\\triple";
 		int[][] matrix = getMatrix(entityFile, tripleFile);
-		
-		//int[][]matrix = new int[][]{{0, 5, INF, 7}, {INF, 0, 4, 2}, {3, 3, 0, 2}, {INF, INF, 1, 0}};
-		 
+
+		// int[][]matrix = new int[][]{{0, 5, INF, 7}, {INF, 0, 4, 2}, {3, 3, 0,
+		// 2}, {INF, INF, 1, 0}};
+
 		printMatrix(matrix);
-		//System.out.println("************************************");
+		// System.out.println("************************************");
 		int[][] shortF = floydDistance(matrix);
 		printMatrix(shortF);
 		// System.out.println("Matrix dimension is " + length);

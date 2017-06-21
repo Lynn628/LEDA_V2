@@ -229,6 +229,7 @@ public class RescalDistance {
 	    return list_data;
 	}
 	
+
 	//´òÓ¡Êä³ö¾ØÕó
 	public static void printMatrix(BigDecimal[][] matrix) {
 		int length = matrix.length;
