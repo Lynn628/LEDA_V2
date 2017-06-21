@@ -83,14 +83,15 @@ public class FileBuild2 {
 	 * @throws SQLException
 	 */
 	public static void proecssFile(Model model, String fileName) throws IOException, SQLException {
-		File dir = new File("C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\" + fileName);
+		String directoryPath = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\";
+		File dir = new File(directoryPath + fileName);
 		if (!dir.exists()) {
 			dir.mkdir();
 		}
 		// Model model = TDBUtil.getTDBModel();
-		  FileWriter entityFile = new FileWriter(new File("C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\" + fileName + "\\entity-ids"), true);		
-		  FileWriter wordsFile = new FileWriter(new File("C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\" + fileName + "\\words"), true);
-		  FileWriter tripleFile = new FileWriter(new File("C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\" + fileName + "\\triple"), true);
+		  FileWriter entityFile = new FileWriter(new File(directoryPath + fileName + "\\entity-ids"), true);		
+		  FileWriter wordsFile = new FileWriter(new File(directoryPath + fileName + "\\words"), true);
+		  FileWriter tripleFile = new FileWriter(new File(directoryPath + fileName + "\\triple"), true);
 			/*FileWriter entityFile = new FileWriter("D:\\rescalInputFile\\" + fileName + "\\entity-ids", true);		
 		/*FileWriter entityFile = new FileWriter("D:\\rescalInputFile\\" + path + "\\entity-ids", true);
 		FileWriter wordsFile = new FileWriter("D:\\rescalInputFile\\" + path + "\\words", true);
@@ -144,8 +145,8 @@ public class FileBuild2 {
 				} else {
 					preId = pMap.get(preStr);
 				}
-				colFilePath = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\" + fileName + "\\" + preId + "-cols";
-				rowFilePath = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\" + fileName + "\\" + preId + "-rows";
+				colFilePath = directoryPath + fileName + "\\" + preId + "-cols";
+				rowFilePath = directoryPath + fileName + "\\" + preId + "-rows";
 				tripleFile.write(subId + " " + preId + " " + objId + "\n");
 
 				FileWriter fw1 = new FileWriter(new File(colFilePath), true);

@@ -60,7 +60,7 @@ public class clusterUtil {
 	}
 	
 	/**
-	 * 返回图中点的PageRank
+	 * 计算图中点的PageRank
 	 * @param graph
 	 * @return
 	 */
