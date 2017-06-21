@@ -54,9 +54,9 @@ public class FileBuild2 {
 		    model.read(cleanedFilePath, "N-Quads");
 		} else if (cleanedFilePath.endsWith("rdf")) {
 			//model.read(cleanedFilePath, "RDF/XML");
-			 FileManager.get().loadModel(cleanedFilePath, "RDf/XML");
+			model.read(cleanedFilePath, "RDf/XML");
 		} else if (cleanedFilePath.endsWith("ttl")) {
-			 FileManager.get().loadModel(cleanedFilePath, "TTL");
+			model.read(cleanedFilePath, "TTL");
 		}
 		proecssFile(ds.getDefaultModel(), fileName);
 		scanner.close();
@@ -83,14 +83,14 @@ public class FileBuild2 {
 	 * @throws SQLException
 	 */
 	public static void proecssFile(Model model, String fileName) throws IOException, SQLException {
-		File dir = new File("D:\\rescalInputFile\\" + fileName);
+		File dir = new File("C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\" + fileName);
 		if (!dir.exists()) {
 			dir.mkdir();
 		}
 		// Model model = TDBUtil.getTDBModel();
-		  FileWriter entityFile = new FileWriter("C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\" + fileName + "\\entity-ids", true);		
-		  FileWriter wordsFile = new FileWriter("C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\" + fileName + "\\words", true);
-		  FileWriter tripleFile = new FileWriter("C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\" + fileName + "\\triple", true);
+		  FileWriter entityFile = new FileWriter(new File("C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\" + fileName + "\\entity-ids"), true);		
+		  FileWriter wordsFile = new FileWriter(new File("C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\" + fileName + "\\words"), true);
+		  FileWriter tripleFile = new FileWriter(new File("C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\" + fileName + "\\triple"), true);
 			/*FileWriter entityFile = new FileWriter("D:\\rescalInputFile\\" + fileName + "\\entity-ids", true);		
 		/*FileWriter entityFile = new FileWriter("D:\\rescalInputFile\\" + path + "\\entity-ids", true);
 		FileWriter wordsFile = new FileWriter("D:\\rescalInputFile\\" + path + "\\words", true);
@@ -103,8 +103,8 @@ public class FileBuild2 {
 		int pNum = 1;
 		StmtIterator stmtIterator = model.listStatements();
 		System.out.println("Model Size " + model.size());
-		String rowFileName = null;
-		String colFileName = null;
+		String rowFilePath = null;
+		String colFilePath = null;
 		while (stmtIterator.hasNext()) {
 			Statement statement = stmtIterator.next();
 			RDFNode sub = statement.getSubject();
@@ -144,19 +144,20 @@ public class FileBuild2 {
 				} else {
 					preId = pMap.get(preStr);
 				}
-				colFileName = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\" + fileName + "\\" + preId + "-cols";
-				rowFileName = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\" + fileName + "\\" + preId + "-rows";
+				colFilePath = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\" + fileName + "\\" + preId + "-cols";
+				rowFilePath = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\" + fileName + "\\" + preId + "-rows";
 				tripleFile.write(subId + " " + preId + " " + objId + "\n");
 
-				FileWriter fw1 = new FileWriter(colFileName, true);
+				FileWriter fw1 = new FileWriter(new File(colFilePath), true);
 				// BufferedWriter bw1 = new BufferedWriter(fw1);
-				FileWriter fw2 = new FileWriter(rowFileName, true);
+				FileWriter fw2 = new FileWriter(new File(rowFilePath), true);
 				/*
 				 * BufferedWriter bw2 = new BufferedWriter(fw2); bw1.write(subId
 				 * + " "); bw2.write(objId + " ");
 				 */
-				fw1.write(subId + " ");
-				fw2.write(objId + " ");
+				//col file存储的是宾语，row文件存储的是主语
+				fw1.write(objId + " ");
+				fw2.write(subId + " ");
 				fw1.close();
 				fw2.close();
 			}

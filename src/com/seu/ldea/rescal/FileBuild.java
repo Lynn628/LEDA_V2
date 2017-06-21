@@ -131,8 +131,8 @@ public class FileBuild {
 				/*BufferedWriter bw2 = new BufferedWriter(fw2);
 				bw1.write(subId + " ");
 				bw2.write(objId + " ");*/
-				fw1.write(subId + " ");
-				fw2.write(objId + " ");
+				fw1.write(objId + " ");
+				fw2.write(subId + " ");
 				fw1.close();
 				fw2.close();
 			}
