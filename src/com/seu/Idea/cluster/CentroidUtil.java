@@ -19,6 +19,7 @@ import org.jgrapht.alg.scoring.PageRank;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 
+import com.mysql.fabric.xmlrpc.base.Data;
 import com.seu.ldea.tau.RescalDistance;
 
 /**
@@ -31,88 +32,16 @@ import com.seu.ldea.tau.RescalDistance;
  * @author Lynn
  *
  */
-public class centroidUtil {
+public class CentroidUtil {
+	
+	public static Graph<Integer, DefaultEdge> graph;
 	public static ArrayList<Entry<Integer, Double>> sortedList;
 	// 记录输出日志
 	public static FileWriter fileWriter;
 	public static BufferedWriter bufferedWriter;
-
-	
-	/**
-	 * 
-	 * @param inputFileFoldPath,Rescal 输入文件夹所在位置
-	 * @return
-	 * @throws IOException
-	 */
-	public static Graph<Integer, DefaultEdge> buildGraph(String inputFileFoldPath) throws IOException {
-		String tripleFilePath = inputFileFoldPath + "\\entity-ids";
-		String entityFilePath = inputFileFoldPath + "\\triple";
-		FileReader fr1 = new FileReader(tripleFilePath);
-		FileReader fr2 = new FileReader(entityFilePath);
-		BufferedReader br1 = new BufferedReader(fr1);
-		BufferedReader br2 = new BufferedReader(fr2);
-		Graph<Integer, DefaultEdge> graph = new DefaultDirectedGraph<>(DefaultEdge.class);
-		String line = "";
-		// 添加顶点,获取顶点编号
-		while ((line = br1.readLine()) != null) {
-			String[] lineArr = line.split(":");
-			graph.addVertex(Integer.parseInt(lineArr[0]));
-
-		}
-		// 添加边
-		while ((line = br2.readLine()) != null) {
-			String[] lineArr = line.split(" ");
-			graph.addEdge(Integer.parseInt(lineArr[0]), Integer.parseInt(lineArr[2]));
-		}
-		br1.close();
-		br2.close();
-		return graph;
-	}
-
-	/**
-	 * 计算图中点的PageRank
-	 * 
-	 * @param graph
-	 * @return
-	 */
-	public static Map<Integer, Double> calcPageRank(Graph<Integer, DefaultEdge> graph) {
-		PageRank<Integer, DefaultEdge> pageRank = new PageRank<>(graph);
-		for (Entry<Integer, Double> item : pageRank.getScores().entrySet()) {
-			// System.out.println("vertex " + item.getKey() + "---> " + "score "
-			// + item.getValue());
-		}
-		return pageRank.getScores();
-	}
-
-	/**
-	 * 依据score值升序排序entry
-	 * 
-	 * @param socreMap
-	 * @throws IOException
-	 */
-	public static void sortedRank(Map<Integer, Double> socreMap) throws IOException {
-		ArrayList<Entry<Integer, Double>> entryList = new ArrayList<>(socreMap.entrySet());
-		System.out.println("whether list is empty " + entryList.isEmpty());
-		Collections.sort(entryList, new Comparator<Entry<Integer, Double>>() {
-			@Override
-			public int compare(Entry<Integer, Double> o1, Entry<Integer, Double> o2) {
-				// 降序排序
-				return o2.getValue().compareTo(o1.getValue());
-			}
-		});
-
-		for (Entry<Integer, Double> item : entryList) {
-			System.out.println("vertex " + item.getKey() + "---> " + item.getValue());
-			bufferedWriter.write("vertex " + item.getKey() + "---> " + item.getValue());
-			bufferedWriter.newLine();
-		}
-		sortedList = entryList;
-	}
-
 	
 	/**
 	 * 依据k值以及中心度计算方法，获取候选质心集合
-	 * 
 	 * @param k
 	 * @param type
 	 * @return
@@ -120,17 +49,18 @@ public class centroidUtil {
 	 */
 	public static int[] getCandidateNodes(int num, int type) throws IOException {
 		System.out.println("Candidate nodes set size is " + num);
-		bufferedWriter.write("Candidate nodes set size is--> " + num);
-		bufferedWriter.newLine();
+		/*bufferedWriter.write("Candidate nodes set size is--> " + num);
+		bufferedWriter.newLine();*/
 		// bufferedWriter.close();
 		int[] candidateNodes = new int[num];
 		// 1 表示PageRank
 		if (type == 1) {
 			// 后期查询数据库，现阶段保存在内存
 			for (int i = 0; i < num; i++) {
-				candidateNodes[i] = sortedList.get(i).getKey();
-				bufferedWriter.write("cadidate nodes " + i + " is--> " + candidateNodes[i]);
-				bufferedWriter.newLine();
+				
+				candidateNodes[i] = DegreeCalculation.getSortedDegree(graph).get(i).getKey();
+			/*	bufferedWriter.write("cadidate nodes " + i + " is--> " + candidateNodes[i]);
+				bufferedWriter.newLine();*/
 			}
 		}
 		return candidateNodes;
@@ -146,8 +76,9 @@ public class centroidUtil {
 	 * @return
 	 * @throws IOException
 	 */
-	public static int[] getCentroidNodes(Graph<Integer, DefaultEdge> graph, int k, BigDecimal[][] vectorDistance)
+	public static int[] getCentroidNodes(Graph<Integer, DefaultEdge> ingraph, int k, BigDecimal[][] vectorDistance)
 			throws IOException {
+		graph = ingraph; 
 		int[] candidateNodes = getCandidateNodes(k * 10, 1);
 		int[] centroidNodes = new int[k];
 		// 中心点初始化
@@ -157,18 +88,18 @@ public class centroidUtil {
 		// 将中心度最大的点加入质心集合，并以其作为初始点
 		centroidNodes[0] = candidateNodes[0];
 		System.out.println("first centroid node is " + candidateNodes[0]);
-		bufferedWriter.newLine();
+		/*bufferedWriter.newLine();
 		bufferedWriter.write("first centroid node is---> " + candidateNodes[0]);
-		bufferedWriter.newLine();
+		bufferedWriter.newLine();*/
 		candidateNodes[0] = -1;
 		int selectedId = -1;
 		// 用于表示短距离
 		int stopFlag = 1;
 		// 经历K-1次质心选取过程
 		while (stopFlag < k) {
-			BigDecimal globalMinimalDistance = new BigDecimal(BigInteger.TEN);
+			BigDecimal globalMinimal = new BigDecimal(BigInteger.TEN);
 			for (int i = 1; i < candidateNodes.length; i++) {
-				BigDecimal localMinimalDistance = new BigDecimal(BigInteger.TEN);
+				BigDecimal localMinimal = new BigDecimal(BigInteger.TEN);
 				if (candidateNodes[i] != -1) {
 					// System.out.println("CandidcateNodes[i] is in this round
 					// ***** " + candidateNodes[i]);
@@ -178,24 +109,24 @@ public class centroidUtil {
 							// 判断当前顶点与质心之间的距离
 							BigDecimal distance = vectorDistance[candidateNodes[i]][centroidNodes[j]];
 							// 选取局部最小的距离
-							if (distance.compareTo(localMinimalDistance) < 0) {
-								localMinimalDistance = distance;
+							if (distance.compareTo(localMinimal) < 0) {
+								localMinimal = distance;
 							}
 						}
 					}
 
-					if (localMinimalDistance.compareTo(globalMinimalDistance) < 0) {
-						globalMinimalDistance = localMinimalDistance;
+					if (localMinimal.compareTo(globalMinimal) < 0) {
+						globalMinimal = localMinimal;
 						selectedId = i;
 
 					}
 				}
 			}
 			System.out.println("#" + stopFlag + 1 + "centroid - candidate# " + selectedId + " Node# is "
-					+ candidateNodes[selectedId] + " mininal distance to other centroids is " + globalMinimalDistance);
-			bufferedWriter.write("#" + stopFlag + 1 + "centroid - candidate# " + selectedId + " Node# is "
-					+ candidateNodes[selectedId] + " mininal distance to other centroids is " + globalMinimalDistance);
-			bufferedWriter.newLine();
+					+ candidateNodes[selectedId] + " mininal distance to other centroids is " + globalMinimal);
+			//bufferedWriter.write("#" + stopFlag + 1 + "centroid - candidate# " + selectedId + " Node# is "
+					//+ candidateNodes[selectedId] + " mininal distance to other centroids is " + globalMinimal);
+			//bufferedWriter.newLine();
 			// 将选出的点加入质心集合中，并将其从候选质心中排除
 			centroidNodes[stopFlag] = candidateNodes[selectedId];
 			candidateNodes[selectedId] = -1;
@@ -208,10 +139,9 @@ public class centroidUtil {
 			stopFlag++;
 		}
 		candidateNodes = null;
-		return candidateNodes;
+		return centroidNodes;
 	}
 
-	
 
 	public static void main(String[] args) throws IOException {
 		long begin = System.currentTimeMillis();
@@ -220,15 +150,16 @@ public class centroidUtil {
 		Scanner scanner = new Scanner(System.in);
 		// path 文件路径,rescal输入文件的目录地址
 		System.out.println("Please give  file path ");
-		String path = scanner.nextLine();
+		String directoryPath = scanner.nextLine();
 		System.out.println("Please give embedding file path ");
 		String embedingPath = scanner.nextLine();
 		System.out.println("Please give the vector calculation method ");
 		String method = scanner.nextLine();
 		scanner.close();
-		Graph<Integer, DefaultEdge> graph = buildGraph(path);
-		sortedRank(calcPageRank(graph));
-		BigDecimal[][] vectorDistance = RescalDistance.calcVectorDistance(embedingPath, method);
+		Dataset dataset = new Dataset(directoryPath, embedingPath);
+		graph = ClusterUtil.buildGraph(dataset.getDatasetEmbedingPath());
+		//sortedRank(calcPageRank(graph));
+		BigDecimal[][] vectorDistance = RescalDistance.calcVectorDistance(dataset.getDatasetEmbedingPath(), method);
 		int size = vectorDistance.length;
 		// System.out.println("matrix size is ++++++++++++++++" + size);
 		for (int i = 0; i < size; i++) {
@@ -240,7 +171,6 @@ public class centroidUtil {
 			bufferedWriter.newLine();
 
 		}
-		
 		getCentroidNodes(graph, 5, vectorDistance);
 		bufferedWriter.close();
 		long end = System.currentTimeMillis();
