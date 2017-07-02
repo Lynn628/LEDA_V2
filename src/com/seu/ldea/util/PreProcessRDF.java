@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 
+import javax.sound.sampled.Line;
+
 public class PreProcessRDF {
 	/**
 	 * 
@@ -20,6 +22,8 @@ public class PreProcessRDF {
 	 *            目标文件名
 	 * @return
 	 * @throws IOException
+	 * a.将URI中|替换为_
+	 * b.将URI中的空格替换为_
 	 */
 	public static String PreProcessRDFFile(String filePath, String dstName) throws IOException {
 		
@@ -50,6 +54,7 @@ public class PreProcessRDF {
 		String line = "";
 		try {
 			while ((line = bufferedReader.readLine()) != null) {
+				
 				String newline = RDFLineProcess(line);
 				bufferedWriter.write(newline);
 				bufferedWriter.newLine();
@@ -63,35 +68,26 @@ public class PreProcessRDF {
 		return path;
 	}
 
-	public static String PreProcessRDFFile3(String filePath, String dstName) throws IOException {
-		// Scanner scanner = new Scanner(System.in);
-		// String filePath = scanner.nextLine();
-		/*
-		 * System.out.println("Input dst fileName"); String dstName =
-		 * scanner.nextLine(); scanner.close();
-		 */
-		FileReader fileReader = new FileReader(new File(filePath));
-		BufferedReader bufferedReader = new BufferedReader(fileReader);
+	
+	
+	
+	public static String PreProcessRDFFile2(String filePath, String dstName) throws IOException {
+		InputStreamReader read = new InputStreamReader(new FileInputStream(filePath),"UTF-8");
+		BufferedReader bufferedReader = new BufferedReader(read);
 		int index = filePath.lastIndexOf(".");
 		String fileType = filePath.substring(index);
-		String path = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\DataSet\\BTChallenge2014\\Prepocessed\\"
+		String path = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\PreProcessedFile\\"
 				+ dstName + fileType;
 		File dstFile = new File(path);
-		BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(dstFile));
+	    OutputStreamWriter write = new OutputStreamWriter(new FileOutputStream(dstFile),"UTF-8");
+		BufferedWriter bufferedWriter = new BufferedWriter(write);
 		String line = "";
 		try {
 			while ((line = bufferedReader.readLine()) != null) {
-				// String content = line.matches(regex)
-				if (line.contains("|")) {
-					System.out.println(line);
-					line = line.replace("|", "-");
-					System.out.println("***" + line);
-					bufferedWriter.write(line);
-					bufferedWriter.newLine();
-				} else {
-					bufferedWriter.write(line);
-					bufferedWriter.newLine();
-				}
+				//String[] elements = line.split(" ");
+				String newline = RDFLineProcess(line);
+				bufferedWriter.write(newline);
+				bufferedWriter.newLine();
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -112,7 +108,7 @@ public class PreProcessRDF {
 		// String arr[] = input.split("<");
 		char[] inputSeq = input.toCharArray();
 		int left = 0;
-		int right = 0;
+		
 		for (int i = 0; i < inputSeq.length; i++) {
 			char alpha = inputSeq[i];
 
@@ -147,8 +143,13 @@ public class PreProcessRDF {
 		 * scanner.nextLine(); String dst = scanner.nextLine(); scanner.close();
 		 * PreProcessRDFFile(path, dst);
 		 */
-		RDFLineProcess(new String(
-				"<http://dbpedia.org/page/Berlin> <http://www.w3.org/1999/xhtml/vocab#alternate> <http://dbpedia.org/sparql?default-graph-uri=http%3A%2F%2Fdbpedia.org&query=DESCRIBE+<http://dbpedia.org/resource/Berlin> <http://dbpedia.org/page/Berlin>."));
+		String aString = new String("<http://data.linkedmdb.org/resource/interlink/56537> <http://data.linkedmdb.org/resource/oddlinker/link_source> <http://data.linkedmdb.org/resource/country/KM> .");
+		String bString = new String("<http://data.linkedmdb.org/resource/performance/57101> <http://www.w3.org/2000/01/rdf-schema#label> performance #57101 .");
+		for(String aString2 : aString.split(" "))
+			System.out.println(aString2.toString());
+		
+		//RDFLineProcess(new String(
+			//	"<http://dbpedia.org/page/Berlin> <http://www.w3.org/1999/xhtml/vocab#alternate> <http://dbpedia.org/sparql?default-graph-uri=http%3A%2F%2Fdbpedia.org&query=DESCRIBE+<http://dbpedia.org/resource/Berlin> <http://dbpedia.org/page/Berlin>."));
 		
 		// String("<http://ec.europa.eu/eurostat/ramon/rdfdata/estat-legis/30900>
 		// <http://purl.org/dc/terms/title> \"Commission Decision No 2002/750/EC of 10 September 2002 on the continued application of areal survey and remote sensing techniques to the agricultural statistics for 2002-2003\" <http://ec.europa.eu/eurostat/ramon/rdfdata/estat-legis.rdf> ."));
