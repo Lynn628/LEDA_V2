@@ -164,15 +164,18 @@ public class LabelResourceTimeInfo {
 			//************************************
 			// 如果主语URI包含时间信息
 			if (!subURIList.isEmpty()) {
+				
 				if (!resourceTimeInfo.containsKey(currentRId)) {
 					// 给当前资源创建信息标签
-					ResourceInfo resourceInfo = new ResourceInfo(currentRId);
+					ResourceInfo resourceInfo = new ResourceInfo(currentRId);					
 					resourceTimeInfo.put(currentRId, resourceInfo);
+				}
 					for (CoreMap cm : subURIList) {
 					//	labelResource(currentRId, -1, cm);
 						labelResource(currentRId, "createdDate", cm);
 					}
-				}
+				
+				
 			}
 			Property property = statement.getPredicate();
 			RDFNode object = statement.getObject();
@@ -210,7 +213,7 @@ public class LabelResourceTimeInfo {
 					}
 
 					for (CoreMap cm : objURIList) {
-						labelResource(currentRId, property.getLocalName(), cm);
+						labelResource(currentRId, "createdDate", cm);
 					}
 				}
 
@@ -274,7 +277,7 @@ public class LabelResourceTimeInfo {
 	 */
 	public static void labelResource(Integer currentRId, String currentPId, CoreMap cm) {
 		
-		HashMap<String, HashSet<TimeSpan>> timePairMap = resourceTimeInfo.get(currentRId).getTimeInfoPair();
+		HashMap<String, HashSet<TimeSpan>> timePairMap = resourceTimeInfo.get(currentRId).getPredicateTimePair();
 		TimeSpan span = new TimeSpan(cm.toString(), cm.toString());
 		// 判断当前resource是否有时间标签，如果有，则添加时间信息
 		if (timePairMap.containsKey(currentPId)) {

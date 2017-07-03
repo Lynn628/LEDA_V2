@@ -4,7 +4,7 @@ import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.query.ResultSet;
 
-import com.seu.Idea.cluster.Dataset;
+import com.seu.ldea.cluster.Dataset;
 
 import virtuoso.jena.driver.VirtGraph;
 import virtuoso.jena.driver.VirtuosoQueryExecution;

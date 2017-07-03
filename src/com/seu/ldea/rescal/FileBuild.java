@@ -21,29 +21,30 @@ import com.seu.ldea.util.*;
 
 public class FileBuild {
   public static void main(String[] args) throws IOException, SQLException{
+	  long t1 = System.currentTimeMillis();
+	  
 	  Scanner scanner = new Scanner(System.in);
-	  System.out.println("Please give a name to TDB");
-	  String tdbName = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\TDB\\" + scanner.nextLine()+"TDB";
-	  System.out.println("Please give the file path to process");
-	 // String fileName = scanner.nextLine();
+	 // System.out.println("Please give a name to TDB");
+	  //String tdbName = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\TDB\\" + scanner.nextLine()+"TDB";
+	/*  System.out.println("Please give the file path to process");
+	  String fileName = scanner.nextLine();*/
 	 // String rawFilePath = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\DataSet\\SWCC\\conferences\\jamendo-rdf\\" + fileName + ".rdf";
-	 String rawFilePath = scanner.nextLine();
+	/* String rawFilePath = scanner.nextLine();
 	 int indexBegin = rawFilePath.lastIndexOf("\\");
 	 int indexEnd = rawFilePath.lastIndexOf("."); 
 	
 	String fileName = rawFilePath.substring(indexBegin+1, indexEnd);
 	//  String rawFilePath = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\DataSet\\jamendo-rdf\\" + fileName + ".rdf";;
-	  long t1 = System.currentTimeMillis();
 	  Dataset ds = TDBFactory.createDataset(tdbName);
 	  Model model = ds.getDefaultModel();
-	  model.read(rawFilePath, "N-Quads");
+	  model.read(rawFilePath, "RDF/XML");
 	  proecssFile(ds.getDefaultModel(), fileName);
-	  scanner.close();
-	 /* proecssFile();
-	  long t2 = System.currentTimeMillis();
-	  System.out.println("process total file time: "+ (t2-t1)/3600000 + "h");*/
-	  //TopKPredicate.getTopKPredicateFile(60, "D:\\rescalInputFile\\Dbpedia2016-2017-5-11\\triple");
-	 // TopKPredicate.makeTopKInputFile(60, "D:\\rescalInputFile\\Dbpedia2016-2017-5-11\\triple");
+	  scanner.close();*/
+	  //proecssFile();
+	//  long t2 = System.currentTimeMillis();
+	  //System.out.println("process total file time: "+ (t2-t1)/3600000 + "h");*/
+	  TopKPredicate.getTopKPredicate(60, "D:\\rescalInputFile\\Dbpedia2016-2017-5-11\\triple");
+	  TopKPredicate.makeTopKInputFile(60, "D:\\rescalInputFile\\Dbpedia2016-2017-5-11\\triple");
 	  long t2 = System.currentTimeMillis();
 	  System.out.println("create sub input file time: " + (t2-t1)/3600000.0 + "h");
   }

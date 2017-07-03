@@ -60,16 +60,6 @@ public class FileBuild2 {
 		}
 		proecssFile(ds.getDefaultModel(), fileName);
 		scanner.close();
-		/*
-		 * proecssFile(); long t2 = System.currentTimeMillis();
-		 * System.out.println("process total file time: "+ (t2-t1)/3600000 +
-		 * "h");
-		 */
-		//C:\Users\Lynn\Desktop\Academic\LinkedDataProject\DataSet\SWCC\eswc-2013-15-complete.rdf
-		// TopKPredicate.getTopKPredicateFile(60,
-		// "D:\\rescalInputFile\\Dbpedia2016-2017-5-11\\triple");
-		// TopKPredicate.makeTopKInputFile(60,
-		// "D:\\rescalInputFile\\Dbpedia2016-2017-5-11\\triple");
 		model.close();
 		ds.close();
 		long t2 = System.currentTimeMillis();
@@ -92,10 +82,7 @@ public class FileBuild2 {
 		  FileWriter entityFile = new FileWriter(new File(directoryPath + fileName + "\\entity-ids"), true);		
 		  FileWriter wordsFile = new FileWriter(new File(directoryPath + fileName + "\\words"), true);
 		  FileWriter tripleFile = new FileWriter(new File(directoryPath + fileName + "\\triple"), true);
-			/*FileWriter entityFile = new FileWriter("D:\\rescalInputFile\\" + fileName + "\\entity-ids", true);		
-		/*FileWriter entityFile = new FileWriter("D:\\rescalInputFile\\" + path + "\\entity-ids", true);
-		FileWriter wordsFile = new FileWriter("D:\\rescalInputFile\\" + path + "\\words", true);
-		FileWriter tripleFile = new FileWriter("D:\\rescalInputFile\\" + path + "\\triple", true);*/
+	
 		// 存储resource id的map
 		HashMap<String, Integer> rMap = new HashMap<>();
 		// 存储predicate id的map
@@ -118,7 +105,8 @@ public class FileBuild2 {
 
 			RDFNode obj = statement.getObject();
 			String objStr = obj.toString();
-
+           、、、
+           //下面的限制条件可能需要修改，使得predicate能够完整
 			if (sub instanceof Resource && obj instanceof Resource) {
 				if (!rMap.containsKey(subStr)) {
 

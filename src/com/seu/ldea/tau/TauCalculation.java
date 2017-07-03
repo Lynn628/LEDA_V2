@@ -9,7 +9,7 @@ import java.util.Map.Entry;
 import java.util.Scanner;
 
 /**
- * 
+ * 计算tau值选用Cosine-2计算向量距离效果较好
  * @author Lynn 将两种距离进行tau值计算
  */
 public class TauCalculation {
@@ -18,7 +18,7 @@ public class TauCalculation {
 	public static BigDecimal calculateTau(int[] standard, int[] comparison) {
 
 		if (standard.length != comparison.length) {
-			throw new IllegalArgumentException("Array dimensions disagree");
+			throw new IllegalArgumentException("Array dimensions is not same");
 		}
 		BigDecimal bigN = new BigDecimal(String.valueOf(standard.length));
 		int N = bigN.intValue();
@@ -62,6 +62,7 @@ public class TauCalculation {
 		return counter;
 	}
 
+	
 	public static void main(String[] args) throws IOException {
 		long t1 = System.currentTimeMillis();
 
@@ -81,7 +82,8 @@ public class TauCalculation {
 				+ latentNumber + "-lambda" + lambdaNumber + ".embeddings.txt";
 		// RESCAL张量的对象距离矩阵
 		BigDecimal[][] matrix1 = RescalDistance.calcVectorDistance(rescalEmbending, method);
-		System.out.println(matrix1.length);
+	    RescalDistance.printMatrix(matrix1);
+		System.out.println(matrix1.length );
 		// 将向量距离排序
 		ArrayList<Entry<Integer, BigDecimal>> rescalDistanceList = RescalDistance.sortVectorDistance(matrix1,
 				"BigDecimal");
@@ -113,5 +115,5 @@ public class TauCalculation {
 		System.out.println("********************************");
 
 	}
-
+//Cosine-abs-square, Euclidean, Cosine-2
 }

@@ -104,7 +104,7 @@ public class MakeTripleFile {
 		while( (line = bufferedReader.readLine()) != null){
 			i++;
 			bw.write(i + " - " + line);
-			String processLine = URIUtil.processURI2(line);
+			String processLine = URIUtil.processURI(line);
 			bw.newLine();
 			bw.write(processLine);
 			bw.newLine();

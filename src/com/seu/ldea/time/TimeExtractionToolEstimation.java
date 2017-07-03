@@ -13,7 +13,7 @@ import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 
-import com.seu.Idea.cluster.Dataset;
+import com.seu.ldea.cluster.Dataset;
 import com.seu.ldea.entity.ResourceInfo;
 import com.seu.ldea.entity.TimeSpan;
 import com.seu.ldea.query.SparqlQuery;

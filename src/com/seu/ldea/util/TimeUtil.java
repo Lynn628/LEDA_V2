@@ -12,7 +12,7 @@ import java.util.Date;
  */
 public class TimeUtil {
 	
-    public static Date formatTime(String dateStr) throws ParseException{
+    public static Date formatTime(String dateStr) {
     System.out.println("datStr -- " + dateStr);
     	//如果是日期格式 
     if(isValidDate(dateStr)){
@@ -24,10 +24,15 @@ public class TimeUtil {
     		dateStr = dateStr.substring(0, index);
     		}
     		System.out.println("dateStr2-- " + dateStr);
+    		try{
     		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
     		Date date = dateFormat.parse(dateStr);
     		System.out.println(date);
     		return date;
+    		}catch (ParseException e) {
+    			return null;
+				// TODO: handle exception
+			}
     	}else{
     		String[] strings = dateStr.split("-");
     		int length =strings.length;
@@ -59,8 +64,13 @@ public class TimeUtil {
     			dateFormat = new SimpleDateFormat("yyyy-MM-dd");
     			else return null;
     		}
-    		System.out.println(dateFormat.parse(dateStr));
-            return dateFormat.parse(dateStr);
+    		try{
+    		  System.out.println(dateFormat.parse(dateStr));
+              return dateFormat.parse(dateStr);
+            }catch (ParseException e) {
+            	return null;
+				// TODO: handle exception
+			}
     	}
       }else{//非日期格式
     		return null;
@@ -93,6 +103,11 @@ public class TimeUtil {
 		System.out.println(date);*/
     	String str2 = "2013-06-05";
     	/*formatTime(str1);*/
-    	formatTime(str1);
+    	//formatTime(str1);
+        String day = "3000";
+        DateFormat format = new SimpleDateFormat("yyyy");
+        Date dates = format.parse(day);
+        DateFormat format2 = new SimpleDateFormat("yyyy-MM-dd");
+    	System.out.println("day of 1000 " + format2.parse(str2));
     }
 }

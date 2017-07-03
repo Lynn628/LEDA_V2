@@ -54,7 +54,7 @@ public class TimeSpan {
     	HashSet<TimeSpan> set = new HashSet<>();
      boolean t1 = set.add(new TimeSpan("2011", "2011"));
      boolean t2 = set.add(new TimeSpan("2011", "2011"));
-     boolean t3 = set.add(new TimeSpan("2013", "2013"));
+     boolean t3 = set.add(new TimeSpan("2012", "2012"));
      System.out.println("t1 is " + t1 + " t2 is " + t2 + " t3 is " + t3);
     }
 }

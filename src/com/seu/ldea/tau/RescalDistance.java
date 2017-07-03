@@ -20,78 +20,6 @@ import java.util.Map.Entry;
  */
 //D:\RESCAL\Ext-RESCAL-master\Ext-RESCAL-master\ExperimentResultData\icpw2009-latent10.embeddings.txt
 public class RescalDistance {
-    /**
-     *  d = sqrt((x1-x2)^2+(y1-y2)^2) 
-     *  计算欧式距离
-     */
-	
-	
-	public static BigDecimal[][] calcEuclideanDistance(String filePath,int dimension){
-		// LinkedHashMap<Integer, BigDecimal[]> entityVectors = new LinkedHashMap<>();
-		ArrayList<BigDecimal[]> entityVectors = new ArrayList<>();
-	    
-		BigDecimal[][] distanceMatrix = new BigDecimal[dimension][dimension];
-		//隐变量的个数
-		int latentNum = 0;
-		//添加一个角线元素初始化矩阵的过程
-		for(int i = 0; i < dimension; i++){
-			for(int j = 0; j < dimension; j++){
-			distanceMatrix[i][j] = new BigDecimal(0);
-		 }
-		}
-		
-		try {
-			FileReader fileReader = new FileReader(new File(filePath));
-			BufferedReader bufferedReader = new BufferedReader(fileReader);
-			//存储所有entity以及对应的分解的出的rank维的向量<id, int[]> 
-			String currenttLine = "";
-			//存储entity的id
-			//int id = 0;
-			//读取每一行分解出的向量
-			while((currenttLine = bufferedReader.readLine()) != null){
-				String[] vectorStr = currenttLine.split(" ");
-			    latentNum = vectorStr.length;
-			    BigDecimal [] vectorArr = new BigDecimal[latentNum];
-			    for(int i = 0; i < latentNum; i++){
-			    	vectorArr[i] =  new BigDecimal(vectorStr[i]);
-			    }
-			   entityVectors.add(vectorArr);
-			  // id++;
-			}
-			bufferedReader.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	    Iterator<BigDecimal[]> outerIterator = entityVectors.iterator();
-	    int iterNum = 0;
-		while(outerIterator.hasNext()){
-			 iterNum++;
-			 BigDecimal[] outerVector = outerIterator.next();
-			 int outerId = entityVectors.indexOf(outerVector);
-			 //内层迭代器定位到指定的位置
-			 Iterator<BigDecimal[]> innerIterator = entityVectors.iterator();
-			 for(int i = 0; i < iterNum; i++){
-				 innerIterator.next();
-			 }
-			//计算剩余所有id与当前id之间的距离
-		 while(innerIterator.hasNext()){
-				 BigDecimal[] innerVector = innerIterator.next();
-				 int innerId = entityVectors.indexOf(innerVector);
-				 BigDecimal sum = new BigDecimal(0);
-				 for(int i = 0; i < latentNum; i++){
-					sum = sum.add((outerVector[i].subtract(innerVector[i])).pow(2));
-				 }
-				 //用平方代替距离
-				 BigDecimal distance = sum;
-				 distanceMatrix[outerId][innerId]= distance;
-				 distanceMatrix[innerId][outerId] = distance;
-			}
-			//outerIterator.next();
-			//System.out.println("##_______________________________________##");
-		}
-		return distanceMatrix;
-	}
 	
 	/**
 	 * 
@@ -119,9 +47,11 @@ public class RescalDistance {
 			    BigDecimal [] vectorArr = new BigDecimal[latentNum];
 			    for(int i = 0; i < latentNum; i++){
 			    	vectorArr[i] =  new BigDecimal(vectorStr[i]);
+			    	//System.out.println(vectorStr[i]);
 			    }
 			   entityVectors.add(vectorArr);
 			   dimension++;
+			  
 			}
 			bufferedReader.close();
 		} catch (IOException e) {
@@ -130,26 +60,30 @@ public class RescalDistance {
 		}
 		
 		BigDecimal[][] distanceMatrix = new BigDecimal[dimension][dimension];
-		//添加一个角线元素初始化矩阵的过程
+		//添加一个元素初始化矩阵的过程
 		for(int i = 0; i < dimension; i++){
 			for(int j = 0; j < dimension; j++){
 				distanceMatrix[i][j] = new BigDecimal(0);
 			}
 		}
+	//	printMatrix(distanceMatrix);
 	    Iterator<BigDecimal[]> outerIterator = entityVectors.iterator();
 	    int iterNum = 0;
 		while(outerIterator.hasNext()){
 			 iterNum++;
+			 
 			 BigDecimal[] outerVector = outerIterator.next();
+			// System.out.println(outerVector.toString());
 			 int outerId = entityVectors.indexOf(outerVector);
 			 //内层迭代器定位到指定的位置
 			 Iterator<BigDecimal[]> innerIterator = entityVectors.iterator();
-			 for(int i = 0; i < iterNum; i++){
+			 for(int i = 0; i < iterNum - 1; i++){
 				 innerIterator.next();
 			 }
 			//计算剩余所有id与当前id之间的距离
 		 while(innerIterator.hasNext()){
 				 BigDecimal[] innerVector = innerIterator.next();
+			//	 System.out.println(innerVector.toString());
 				 int innerId = entityVectors.indexOf(innerVector);
 				 if(method.equals("Euclidean")){
 				 BigDecimal sum = new BigDecimal(0);
@@ -158,6 +92,7 @@ public class RescalDistance {
 				 }
 				 //用平方代替距离
 				 BigDecimal distance = sum;
+				// System.out.println("outerId and InnerId is -- >" + outerId + " " + innerId);
 				 distanceMatrix[outerId][innerId]= distance;
 				 distanceMatrix[innerId][outerId] = distance;
 				 }else {
@@ -169,34 +104,33 @@ public class RescalDistance {
 						f1 = f1.add(outerVector[i].pow(2));
 						f2 = f2.add(innerVector[i].pow(2));
 						 }
-					// System.out.println(f1 + "   " +f2);
-					 //BigDecimal denominator = new BigDecimal(Math.sqrt((f1.multiply(f2)).doubleValue()));
-					//取绝对值
+					//denominator-分母，此处分母为cosine公式分母的平方
 					 BigDecimal denominator = f1.multiply(f2);
-					 if(method.equals("Cosine-abs-square")){
-					 //BigDecimal distance = (numerator.abs()).divide(denominator, 5, 4);
-					 BigDecimal distance = (numerator.abs()).multiply(numerator.abs()).divide(denominator, 10,4);
+				     System.out.println(">>>>>>>>>>>>" + f1);
+					 //距离计算选用Cosine的平方
+					 if(method.equals("Cosine-square")){
+					 //此处分子为cosine公式分子的平方
+					 BigDecimal distance = (numerator.multiply(numerator)).divide(denominator, 10,4);
 					 distanceMatrix[outerId][innerId]= distance;
 					 distanceMatrix[innerId][outerId] = distance;
-					 //cosine绝对值的平方
+					 //距离计算选用cosine计算公式的分子除以分母的平方
 					 }else if(method.equals("Cosine-1")) {
-						 BigDecimal distance = numerator.divide(denominator, 5, 4);
+						 BigDecimal distance = numerator.divide(denominator, 10, 4);
 						 distanceMatrix[outerId][innerId]= distance;
 						 distanceMatrix[innerId][outerId] = distance;
-
+						// System.out.println(outerId + "-" + innerId + "-" + distance);
+				     //距离计算选用cosine计算公式的分子绝对值除以分母的平方
 					 }else if(method.equals("Cosine-2")){
-						 BigDecimal distance = (numerator.abs()).divide(denominator, 5, 4);
+						 BigDecimal distance = (numerator.abs()).divide(denominator, 10, 4);
 						 distanceMatrix[outerId][innerId]= distance;
 						 distanceMatrix[innerId][outerId] = distance;
 					 }
 				 }
 			}
-			//outerIterator.next();
-			//System.out.println("##_______________________________________##");
+	
 		}
 		return distanceMatrix;
 	}
-	
 	
 	
 	public static ArrayList<Entry<Integer, BigDecimal>> sortVectorDistance(BigDecimal[][] matrix, String type){
@@ -212,33 +146,33 @@ public class RescalDistance {
 			}
 		}
 		//hashmap排序
-		ArrayList<Entry<Integer, BigDecimal>> list_data = new ArrayList<>(valueMap.entrySet());
-		System.out.println("Is original vecotr list is empty" + list_data.isEmpty());
-		Collections.sort(list_data, new Comparator<Entry<Integer, BigDecimal>>(){
+		ArrayList<Entry<Integer, BigDecimal>> entryList = new ArrayList<>(valueMap.entrySet());
+		System.out.println("Is original vecotr list is empty" + entryList.isEmpty());
+		Collections.sort(entryList, new Comparator<Entry<Integer, BigDecimal>>(){
 				@Override
 				public int compare(Entry<Integer, BigDecimal> o1, Entry<Integer, BigDecimal> o2) {
 					// 升序排序
 					return o1.getValue().compareTo(o2.getValue());
 		       }
 		      });
-		// for(Entry<Integer, BigDecimal> entry : list_data){
-			 //System.out.println(entry.getKey() + "***" + entry.getValue());
-		 //}
- 	   //System.out.println("############" + valueMap.size());
 		
-	    return list_data;
+		for (int i = 0; i < entryList.size(); i++) {
+			System.out.println(entryList.get(i).getKey() + "---> " + entryList.get(i).getValue());
+		}
+		return entryList;
 	}
 	
 
 	//打印输出矩阵
 	public static void printMatrix(BigDecimal[][] matrix) {
 		int length = matrix.length;
-		for (int i = 0; i < length/10; i++) {
-			for (int j = 0; j < length/10; j++) {
-				System.out.print((matrix[i][j]) + " ");
+		for (int i = 0; i < length; i++) {
+			for (int j = 0; j < length; j++) {
+				System.out.print((i + "," + j + "-->" + matrix[i][j]) + " ");
 			}
 			System.out.println("\n");
-		}//.setScale(5, BigDecimal.ROUND_HALF_UP).doubleValue()
+		}
+		//.setScale(5, BigDecimal.ROUND_HALF_UP).doubleValue()
 	}
 	public static void main(String[] args){
 	/*	String numberStr = "8.527210019739954837e-11";
@@ -246,7 +180,7 @@ public class RescalDistance {
 		String numberStr2 = "2.067192128537560858e-10";
 		BigDecimal number2 = new BigDecimal(numberStr2);
 		BigDecimal result = number.add(number2);
-		System.out.println(result.doubleValue());*/
+		System.out.println(result.doubleValue());
 		String aString = "-1.096619396952590060e-15 -1.541779030098108941e-10 4.572340874016548707e-15 -1.228008179942374617e-13 -2.675978283291999450e-15 2.547156754840260746e-15 -1.206041782753271513e-13 -4.861489940044404239e-15 1.537488430952749440e-10 3.784480607420342211e-1";
 		String bString = "-1.088166736137109356e-15 -1.541827367606518010e-10 4.490734916738140035e-15 -1.214540492732992064e-13 -2.678741201361051696e-15 2.568881522902228112e-15 -1.191991942833114481e-13 -4.814851848341933688e-15 1.538230857870067078e-10 3.809721655117075247e-15";
 	   // String aString = "-1.096619396952590060e-15 -1.541779030098108941e-10 4.572340874016548707e-15 -1.228008179942374617e-13 -2.675978283291999450e-15 2.547156754840260746e-15 -1.206041782753271513e-13 -4.861489940044404239e-15 1.537488430952749440e-10 3.784480607420342211e-1";
@@ -279,6 +213,11 @@ public class RescalDistance {
 	    
 		//BigDecimal[][] matrix = calcEuclideanDistance("D:\\RESCAL\\Ext-RESCAL-master\\Ext-RESCAL-master\\ExperimentResultData\\icpw2009-latent10.embeddings.txt", 171);
 		//printMatrix(matrix);
-		//System.out.println(matrix[0][3].setScale(5, BigDecimal.ROUND_HALF_UP).doubleValue());
+		//System.out.println(matrix[0][3].setScale(5, BigDecimal.ROUND_HALF_UP).doubleValue());Cosine-square
+		 * icpw2009-complete-latent150-lambda0.embeddings.txt
+*/	 
+		//printMatrix(calcVectorDistance("D:\\RESCAL\\Ext-RESCAL-master\\Ext-RESCAL-master\\icpw2009complete-latent10-lambda0.embeddings.txt", "Cosine-2"));
+		//printMatrix(calcVectorDistance("D:\\RESCAL\\Ext-RESCAL-master\\Ext-RESCAL-master\\icpw2009-complete-latent150-lambda0.embeddings.txt", "Cosine-1"));
+	   printMatrix(calcVectorDistance("C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\vectorCalcTest.txt", "Cosine-2"));	
 	}
 }
