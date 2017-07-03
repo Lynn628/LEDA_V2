@@ -16,64 +16,53 @@ public class ResourceInfo {
 	Integer totalObjNum;
 	// 主语对应的包含时间信息的宾语个数
 	Integer timeObjNum;
+	//资源的类型
+	Integer type;
+	
+	public void setType(Integer type) {
+		this.type = type;
+	}
+	
+	public Integer getType() {
+		return type;
+	}
 	// 存储时间信息的<pId,<t1, t2>>对
-	//HashMap<Integer, HashSet<TimeSpan>> timeInfoPair = new HashMap<>();
 	HashMap<String, HashSet<TimeSpan>> timeInfoPair = new HashMap<>();
 	public ResourceInfo(Integer rId) {
 		this.reourceId = rId;
 		// TODO Auto-generated constructor stub
 	}
 
-	/*public HashMap<Integer, HashSet<TimeSpan>> getTimeInfoPair() {
-		return timeInfoPair;
-	}*/
-	public HashMap<String, HashSet<TimeSpan>> getTimeInfoPair() {
+	public HashMap<String, HashSet<TimeSpan>> getPredicateTimePair() {
 		return timeInfoPair;
 	}
-
-	/*public String toString() {
-		Iterator<Entry<Integer, HashSet<TimeSpan>>> iter = timeInfoPair.entrySet().iterator();
-		String spanStr = "";
-		while (iter.hasNext()) {
-			Entry<Integer, HashSet<TimeSpan>> entry = iter.next();
-			Integer pId = (Integer) entry.getKey();
-			HashSet<TimeSpan> spanSet = (HashSet<TimeSpan>) entry.getValue();
-			spanStr = "< " + pId + ", ";
-			for (TimeSpan span : spanSet) {
-				spanStr += span.toString() + "; ";
-			}
-		}
-		return spanStr;
-	}*/
+   
+	public void setTimeInfoPair(HashMap<String, HashSet<TimeSpan>> timeInfoPair) {
+		// TODO Auto-generated method stub
+		this.timeInfoPair = timeInfoPair;
+	}
 	public String toString() {
 		Iterator<Entry<String, HashSet<TimeSpan>>> iter = timeInfoPair.entrySet().iterator();
 		String spanStr = "";
+		System.out.println("The time predicate # on this Resource -----" + timeInfoPair.entrySet().size());
 		while (iter.hasNext()) {
 			Entry<String, HashSet<TimeSpan>> entry = iter.next();
-			String pId = (String) entry.getKey();
+			String pre = (String) entry.getKey();
 			HashSet<TimeSpan> spanSet = (HashSet<TimeSpan>) entry.getValue();
-			spanStr = "< " + pId + ", ";
+			spanStr += "< " + pre + ", ";
 			for (TimeSpan span : spanSet) {
 				spanStr += span.toString() + "; ";
 			}
+			spanStr += "> ";
 		}
-		return spanStr + ">";
-	}
-	// 内部类，时间实体时间信息键值对
-	class TimeLabel {
-		String predicate;
-		String begin;
-		String end;
-
-		@Override
-		public String toString() {
-			// TODO Auto-generated method stub
-			return "<" + predicate + ", <" + begin + "," + end + ">>";
-		}
+		return spanStr;
 	}
 
 	public static void main(String[] args) {
 
 	}
+
+	
+	
 
 }
