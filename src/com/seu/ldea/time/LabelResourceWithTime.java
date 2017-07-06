@@ -244,7 +244,7 @@ public class LabelResourceWithTime {
 	 */
 	public static void labelResource(Integer nodeId, String pString, CoreMap cm) {
 		//predicate和此predicate上的时间区间Map
-		HashMap<String, HashSet<TimeSpan>> predicateTimePairs = resourceTimeInfo.get(nodeId).getPredicateTimePair();
+		HashMap<String, HashSet<TimeSpan>> predicateTimePairs = resourceTimeInfo.get(nodeId).getPredicateTimeMap();
 		TimeSpan span = new TimeSpan(cm.toString(), cm.toString());
 		// 判断当前resource是否有在该时间属性上有标签，如果有，则添加时间信息
 		if (predicateTimePairs.containsKey(pString)) {

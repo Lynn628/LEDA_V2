@@ -146,7 +146,7 @@ public class LabelResourceWithTimeTest {
 				}
 			}
 		}
-	/*	// 输出实体和实体上面的时间标签
+		// 输出实体和实体上面的时间标签
 		Iterator<Entry<Integer, ResourceInfo>> iter = resourceTimeInfo.entrySet().iterator();
 		// 将resourceMap翻转，依据rId 在resourceMap里面找到指定的资源String
 		HashMap<Integer, String> resourceReverseMap = reverseMap(rMap);
@@ -160,11 +160,11 @@ public class LabelResourceWithTimeTest {
 			Integer key = entry.getKey();
 			System.out.println("current key " + key);
 			String uri = resourceReverseMap.get(key);
-			bufferedWriter.write(key + ": " + uri + " -- " + ((ResourceInfo) entry.getValue()).toString());
+			bufferedWriter.write(key + ": " + uri + " " + ((ResourceInfo) entry.getValue()).toString());
 			bufferedWriter.newLine();
 		
 		}
-		bufferedWriter.close();*/
+		bufferedWriter.close();
 		return resourceTimeInfo;
 	}
 
@@ -180,7 +180,7 @@ public class LabelResourceWithTimeTest {
 		    String result = "";
 			// 将识别出来的时间信息与当前谓语以<p, timeSpan>与资源绑定
 			for (CoreMap cm : list) {
-				double percentage = cm.size()/(uri.length()*1.0);
+				double percentage = cm.toString().length()/(uri.length()*1.0);
 				if(maxPercentage < percentage){
 					maxPercentage = percentage;
 					timeInfo = cm.get(TimeExpression.Annotation.class).getTemporal().toString();
@@ -250,7 +250,7 @@ public class LabelResourceWithTimeTest {
 	 */
 	public static void labelResource(Integer nodeId, String pString, String time) {
 		// predicate和此predicate上的时间区间Map
-		HashMap<String, HashSet<TimeSpan>> predicateTimePairs = resourceTimeInfo.get(nodeId).getPredicateTimePair();
+		HashMap<String, HashSet<TimeSpan>> predicateTimePairs = resourceTimeInfo.get(nodeId).getPredicateTimeMap();
 		TimeSpan span = new TimeSpan(time, time);
 		// 判断当前resource是否有在该时间属性上有标签，如果有，则添加时间信息
 		if (predicateTimePairs.containsKey(pString)) {
@@ -267,12 +267,10 @@ public class LabelResourceWithTimeTest {
 	public static void main(String[] args) throws IOException {
 		long t1 = System.currentTimeMillis();
 		Dataset dataset = new Dataset("jdbc:virtuoso://localhost:1111", "http://LDEA/SWCC.org", "dba", "dba");
-		timeExtraction(dataset, "SWCCTimeTest4",
+		timeExtraction(dataset, "SWCCLabelResourceWithoutLabelComment",
 				"C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\SWCC2");
 		long t2 = System.currentTimeMillis();
 		System.out.println("time cost ----- " + (t2-t1)/1000);
-		/*getNodeIdMap(1,
-		 "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\SWCC2");*/
-		//http://data.semanticweb.org/person/jose-luis-redondo-garc?a
+		
 	}
 }

@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,18 +20,23 @@ import com.seu.ldea.entity.TimeSpan;
 import com.seu.ldea.util.TimeUtil;
 
 /**
- * 汇总实体的时间信息，构建class的时间标签
- * 
- * @author Lynn 思路，words中找到type的id，依据id，读取对应的col和row文件，找到具有时间信息的资源所属的类别，
- *         汇总同一时间属性下面的时间
+ * 在LabelClassWithTime的基础上，将每个class收集标签和整理标签整合到一起，最终获得每个class在某p下的时间区间
+ * @author Lynn
+ *
  */
 public class LabelClassWithTime {
 	// 每个资源的id以及携带的时间信息
 	public static HashMap<Integer, ResourceInfo> resourceTimeInfo = new HashMap<>();
-    
-	public static HashMap<Integer, ResourceInfo> getClassTimeInformation(String dir) throws IOException, ParseException {
+   /**
+    *  
+    * @param dir
+    * @return
+    * @throws IOException
+    * @throws ParseException
+    */
+	public static HashMap<Integer, ResourceInfo> getClassTimeInformation(String dir, String resultFileName) throws IOException, ParseException {
 		// 存储具有时间信息的类以及其时间标签
-		HashMap<Integer, ArrayList<ResourceInfo>> classTimeInfo = new HashMap<>();
+		HashMap<Integer, ResourceInfo> classTimeInfo = new HashMap<>();
 		String wordsFile = dir + "\\words";
 		FileReader fileReader = new FileReader(wordsFile);
 		BufferedReader bufferedReader = new BufferedReader(fileReader);
@@ -74,77 +78,70 @@ public class LabelClassWithTime {
 			// 在贴有时间标签的Entity set中查找是否有此entity id的时间标签
 			ResourceInfo resourceInfo = resourceTimeInfo.get(entityId);
 			if (classTimeInfo.containsKey(classId)) {
-				/* System.out.println(resourceInfo.); */
 				if (resourceInfo != null) {
 					// 给资源信息标上类别
 					resourceInfo.setType(classId);
-					classTimeInfo.get(classId).add(resourceInfo);
+					ResourceInfo classInfo = classTimeInfo.get(classId);
+					HashMap<String, HashSet<TimeSpan>> cPts = classInfo.getPredicateTimeMap();
+					HashMap<String, HashSet<TimeSpan>> rPts = resourceInfo.getPredicateTimeMap();
+					for(Entry<String, HashSet<TimeSpan>> pt : rPts.entrySet()){
+						String property = pt.getKey(); 
+						if(cPts.containsKey(property)){
+							HashSet<TimeSpan> spans = pt.getValue();
+							for(TimeSpan span : spans){
+								//若class在此property上不包含时间信息
+							  if(!cPts.get(property).contains(span)){
+								cPts.get(property).add(span);
+							}
+						}
+					}
+				  }	//classTimeInfo.get(classId).add(resourceInfo);
 				}
 			} else {
-				ArrayList<ResourceInfo> list = new ArrayList<ResourceInfo>();
 				if (resourceInfo != null) {
-					list.add(resourceInfo);
-					classTimeInfo.put(classId, list);
-				}
-				// 若此类所有成员都没有时间标签，则该类不该放入classTimeInfo中
-				/*
-				 * else { classTimeInfo.put(classId, list); }
-				 */
-			}
-		}
-		// 存储合并后的<class, <p1 , timeSpan1>, <p2, timeSpan2>>
-		HashMap<Integer, ResourceInfo> classTimeLabels = new HashMap<>();
-		for (Entry<Integer, ArrayList<ResourceInfo>> entry : classTimeInfo.entrySet()) {
-			int classId = entry.getKey();
-			// 给class创建时间信息标签
-			ResourceInfo aclassInfo = new ResourceInfo(classId);
-			HashMap<String, HashSet<TimeSpan>> classtimePair = new HashMap<>();
-			Iterator<ResourceInfo> iterator = entry.getValue().iterator();
-			// 遍历此class所有的时间标签
-			while (iterator.hasNext()) {
-				// 此class收录的其中一个时间标签
-				ResourceInfo resourceInfo = iterator.next();
-				HashMap<String, HashSet<TimeSpan>> pTPairs = resourceInfo.getPredicateTimePair();
-				// 遍历此时间标签的所有pt对
-				for (Entry<String, HashSet<TimeSpan>> entry2 : pTPairs.entrySet()) {
-					String property = entry2.getKey();
-					HashSet<TimeSpan> resourceTimeSpans = entry2.getValue();
-					if (classtimePair.containsKey(property)) {
-						for (TimeSpan span : resourceTimeSpans) {
-							classtimePair.get(property).add(span);
-						}
-					
-					} else {
-						classtimePair.put(entry2.getKey(), entry2.getValue());
-					}
+				ResourceInfo classInfo = new ResourceInfo(classId);
+				//此时间实体的pts对
+				HashMap<String, HashSet<TimeSpan>> rPts = resourceInfo.getPredicateTimeMap();
+               //初始创建class的resourceinfo则直接将实体的pts当做class的Pts
+				classInfo.setPredicateTimeMap(rPts);    					
+				classTimeInfo.put(classId, classInfo);
 				}
 			}
-			aclassInfo.setTimeInfoPair(classtimePair);
-			classTimeLabels.put(classId, aclassInfo);
 		}
-		
-		rearrangeClassTimeLabels(classTimeLabels);
-	/*	String dstFile = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\TimeExtractionResultFile\\labelclasstest3.txt";
+	
+	getClassTimeSpanInfo(classTimeInfo , resultFileName);
+	
+	String dstFile = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\TimeExtractionResultFile\\SWCC-class-time-set.txt";
 		FileWriter fileWriter = new FileWriter(dstFile);
 		BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
-		for (Entry<Integer, ResourceInfo> entry : classTimeLabels.entrySet()) {
+		for (Entry<Integer, ResourceInfo> entry : classTimeInfo.entrySet()) {
 			bufferedWriter.write(entry.getKey() + " ");
 			ResourceInfo classInfo = entry.getValue();
 			bufferedWriter.write(classInfo.toString());
 			bufferedWriter.newLine();
 			bufferedWriter.flush();
 		}
-		bufferedWriter.close();*/
-		return classTimeLabels;
+		bufferedWriter.close();
+		//return classTimeLabels;
+		return  classTimeInfo;
 	}
 	
-	public static HashMap<Integer, HashMap<String, TimeSpan>>  rearrangeClassTimeLabels(HashMap<Integer, ResourceInfo> classTimeLabels) throws ParseException, IOException{
-		HashMap<Integer, HashMap<String, TimeSpan>> interactiveMatrix = new HashMap<>();
+	/**
+	 * 获取每个class以及class 包含的时间属性上面的时间区间
+	 * @param classTimeLabels
+	 * @param resultFileName
+	 * @return
+	 * @throws ParseException
+	 * @throws IOException
+	 */
+	public static HashMap<Integer, HashMap<String, TimeSpan>>  getClassTimeSpanInfo(HashMap<Integer, ResourceInfo> classTimeInfo , String resultFileName) throws ParseException, IOException{
+		//存储每个class的时间属性以及该属性上的时间区间
+		HashMap<Integer, HashMap<String, TimeSpan>> classPTMap = new HashMap<>();
 		//遍历每一个class
-		for(Entry<Integer, ResourceInfo> entry : classTimeLabels.entrySet()){
+		for(Entry<Integer, ResourceInfo> entry : classTimeInfo.entrySet()){
 			Integer classId = entry.getKey();
 			ResourceInfo resourceInfo = entry.getValue();
-			HashMap<String, HashSet<TimeSpan>> ptPairs = resourceInfo.getPredicateTimePair();
+			HashMap<String, HashSet<TimeSpan>> ptPairs = resourceInfo.getPredicateTimeMap();
 			//获取此class的每一个pt pair
 			for(Entry<String, HashSet<TimeSpan>> entry2 : ptPairs.entrySet()){
 				String classBeginTime = "";
@@ -178,45 +175,49 @@ public class LabelClassWithTime {
 						 }
 						}
 					}
-					//此class在此Property上面的时间区间
+              //得到的起止时间都不为空
+			if(!classBeginTime.equals("") && !classEndTime.equals("")){		
+				//此class在此Property上面的时间区间
 			TimeSpan classTimeSpanOnAProperty = new TimeSpan(classBeginTime, classEndTime);
-			if(interactiveMatrix.containsKey(classId)){
-				HashMap<String, TimeSpan> pt = interactiveMatrix.get(classId);
+			if(classPTMap.containsKey(classId)){
+				HashMap<String, TimeSpan> pt = classPTMap.get(classId);
 				if(!pt.containsKey(property)){
 					pt.put(property, classTimeSpanOnAProperty);
 		 	 }
 		  }else{
 			  HashMap<String, TimeSpan> pt = new HashMap<>();
 			  pt.put(property, classTimeSpanOnAProperty);
-			  interactiveMatrix.put(classId, pt);
-		  }
-		}
-	  }
+			  classPTMap.put(classId, pt);
+		   }
+		 }
+	   }
+	}
 		//结果写入文档
-		String dstFile = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\TimeExtractionResultFile\\SWCC-Interactive-Matrix2.txt";
+		String dstFile = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\TimeExtractionResultFile\\" + resultFileName + ".txt";
 		FileWriter fileWriter = new FileWriter(dstFile);
 		BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
-		for (Entry<Integer, HashMap<String, TimeSpan>> entry : interactiveMatrix.entrySet()) {
+		for (Entry<Integer, HashMap<String, TimeSpan>> entry : classPTMap.entrySet()) {
 			bufferedWriter.write(entry.getKey() + " ");
 			HashMap<String, TimeSpan> classInfo = entry.getValue();
 			for(Entry<String, TimeSpan> entry2 : classInfo.entrySet()){
-			bufferedWriter.write(entry2.getKey() + " -- " + entry2.getValue().toString());
+			bufferedWriter.write(entry2.getKey() + " " + entry2.getValue().toString());
 			bufferedWriter.newLine();
 		}
 			bufferedWriter.newLine();
 			bufferedWriter.flush();
 		}
 		bufferedWriter.close();
-		return interactiveMatrix;
+		return classPTMap;
 	}
 	
+
 	public static void main(String[] args) throws IOException, ParseException {
 		long t1 = System.currentTimeMillis();
 		Dataset dataset = new Dataset("jdbc:virtuoso://localhost:1111", "http://LDEA/SWCC.org", "dba", "dba");
-		resourceTimeInfo = LabelResourceWithTimeTest.timeExtraction(dataset, "SWCC-Class-ExtractionEstimation4",
+		resourceTimeInfo = LabelResourceWithTimeTest2.timeExtraction(dataset, "LinkedMDB2-Class-ExtractionEstimation4",
 				"C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\SWCC2");
 		System.out.println("resourceTimeInfoSize in Main ---" + resourceTimeInfo.size());
-		getClassTimeInformation("C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\SWCC2");
+		getClassTimeInformation("C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\SWCC2" , "SWCCWithoutLabelComment");
 		long t2 = System.currentTimeMillis();
 		double timeCost = (t2 - t1) / 1000.0;
 		System.out.println("End of main~~~~~~time cost " + timeCost + "s");

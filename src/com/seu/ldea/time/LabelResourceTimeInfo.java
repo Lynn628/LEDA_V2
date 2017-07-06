@@ -277,7 +277,7 @@ public class LabelResourceTimeInfo {
 	 */
 	public static void labelResource(Integer currentRId, String currentPId, CoreMap cm) {
 		
-		HashMap<String, HashSet<TimeSpan>> timePairMap = resourceTimeInfo.get(currentRId).getPredicateTimePair();
+		HashMap<String, HashSet<TimeSpan>> timePairMap = resourceTimeInfo.get(currentRId).getPredicateTimeMap();
 		TimeSpan span = new TimeSpan(cm.toString(), cm.toString());
 		// 判断当前resource是否有时间标签，如果有，则添加时间信息
 		if (timePairMap.containsKey(currentPId)) {

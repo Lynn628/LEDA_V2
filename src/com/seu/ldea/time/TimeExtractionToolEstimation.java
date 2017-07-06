@@ -114,6 +114,8 @@ public class TimeExtractionToolEstimation {
 					bufferedWriter.flush();
 				}
 			}
+			if(!preStr.equals("http://www.w3.org/2000/01/rdf-schema#label") &&
+					!preStr.equals("http://www.w3.org/2000/01/rdf-schema#comment")){
 			// 当object为URI时，处理URI，提取并输出其中的时间词
 			if (obj instanceof Resource) {
 				if (URIUtil.judgeURI(objStr)) {
@@ -144,8 +146,8 @@ public class TimeExtractionToolEstimation {
 			bufferedWriter.write("---");
 			bufferedWriter.newLine();
 			bufferedWriter.flush();
+		 }
 		}
-		
 		bufferedWriter.close();
 		// return resourceTimeInfo;
 		// System.out.println("Statement Number: " + lineNum);
