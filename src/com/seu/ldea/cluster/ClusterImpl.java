@@ -4,11 +4,15 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import javax.naming.spi.DirStateFactory.Result;
+
 import java.util.Queue;
 import java.util.Scanner;
 import java.util.Set;
@@ -16,6 +20,7 @@ import java.util.Set;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultEdge;
 
+import com.seu.ldea.entity.Dataset;
 import com.seu.ldea.tau.RescalDistance;
 
 
@@ -28,6 +33,7 @@ public class ClusterImpl {
 
 	public static Dataset dataset;
 	public static BigDecimal[][] vectorDistance;
+	
 	public static  Map<Integer, int[]> labelPropagation(int[] centroidList, Map<Integer, Set<Integer>>neighborsMap){
          Map<Integer, int[]> labelMap = new HashMap<Integer, int[]>();
          Queue<Integer> nodeQueue = new LinkedList<Integer>();
@@ -104,6 +110,24 @@ public class ClusterImpl {
 		
 	}
 	
+	
+	/**
+	 * 返回每个时间片以及时间片上的簇
+	 * @param slices
+	 * @return
+	 */
+	public static HashMap<Integer, HashMap<Integer, HashSet<Integer>>> getSliceClusterMap(HashMap<Integer, HashSet<Integer>> slices, Map<Integer, Set<Integer>> neighborsMap){
+		HashMap<Integer, HashMap<String, HashSet<Integer>>> result = new HashMap<>();
+		for(int i = 0; i < slices.size(); i++){
+			int[] centroidList;
+		  //给每个时间片上的点创建centroidList
+		  
+			  labelPropagation(centroidList, neighborsMap);
+			result.put(i, clusters);
+		}
+		return result;
+	}
+	
 	public static void main(String[] args) throws IOException{
 		Scanner scanner = new Scanner(System.in);
 		System.out.println("Dataset directory --->");
@@ -113,7 +137,7 @@ public class ClusterImpl {
 		dataset = new Dataset(datasetDirectory, datasetEmbedingPath);
 		System.out.println(datasetDirectory + "\n" + datasetEmbedingPath);
 		scanner.close();
-		Map<Integer, Set<Integer>>neighborsMap = ClusterUtil.getNodeNeighbors(dataset.getDatasetDirectory());
+		Map<Integer, Set<Integer>>neighborsMap = ClusterUtil.getNodeOutgoingNeighbors(dataset.getDatasetDirectory());
 	    Graph<Integer, DefaultEdge> graph = ClusterUtil.buildGraph(dataset.getDatasetDirectory());
 	    vectorDistance = RescalDistance.calcVectorDistance(datasetEmbedingPath,"Cosine-2");
 	    int[] centroidList = CentroidUtil.getCentroidNodes(graph, 5, vectorDistance, 1);
@@ -146,6 +170,6 @@ public class ClusterImpl {
 		  System.out.println("---------");
 	   }
 	}
-	
-}//// C:\Users\Lynn\Desktop\Academic\LinkedDataProject\rescalInput\icpw-2009-complete
+}
+//// C:\Users\Lynn\Desktop\Academic\LinkedDataProject\rescalInput\icpw-2009-complete
 // D:\RESCAL\Ext-RESCAL-master\Ext-RESCAL-master\icpw2009complete-latent10-lambda0.embeddings.txt

@@ -20,6 +20,7 @@ import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 
 import com.mysql.fabric.xmlrpc.base.Data;
+import com.seu.ldea.entity.Dataset;
 import com.seu.ldea.tau.RescalDistance;
 
 /**

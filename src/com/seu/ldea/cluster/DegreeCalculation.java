@@ -66,10 +66,10 @@ public class DegreeCalculation {
 	
 	public static void main(String[] args) throws IOException{
 		long t1 = System.currentTimeMillis();
-		String path = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\Top60";
+		String path = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\LinkedMDB2";
 		sortedRank(calcPageRank(ClusterUtil.buildGraph(path)));
 		long t2 = System.currentTimeMillis();
-		System.out.println("Time cost -----> " + (t2-t1)/1000);
+		System.out.println("Time cost -----> " + (t2-t1)/1000 + " s");
 		
 	}
 }

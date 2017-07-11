@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultDirectedGraph;
@@ -40,9 +41,9 @@ public class ClusterUtil {
 		String line = "";
 		// 添加顶点,获取顶点编号
 		while ((line = br1.readLine()) != null) {
-			//String[] lineArr = line.split(":");
+			String[] lineArr = line.split(":");
 			//top60文件获取
-			String[] lineArr = line.split(" ");
+			//String[] lineArr = line.split(" ");
 			graph.addVertex(Integer.parseInt(lineArr[0]));
 
 		}
@@ -57,8 +58,13 @@ public class ClusterUtil {
 		return graph;
 	}
 	
-	
-	public static Map<Integer, Set<Integer>> getNodeNeighbors(String inputFileFoldPath) throws IOException{
+	/**
+	 * 每个点以及每个点的邻居的map,该点作为起点
+	 * @param inputFileFoldPath
+	 * @return
+	 * @throws IOException
+	 */
+	public static Map<Integer, Set<Integer>> getNodeOutgoingNeighbors(String inputFileFoldPath) throws IOException{
 		Map<Integer, Set<Integer>> nodeNeighborMap = new HashMap<Integer, Set<Integer>>();
 
 		String tripleFilePath = inputFileFoldPath + "\\entity-ids";
@@ -95,7 +101,60 @@ public class ClusterUtil {
 		return nodeNeighborMap;
 	}
 	
+	/**
+	 * 每个点以及每个点的邻居的map，该点作为终点
+	 * @param inputFileFoldPath
+	 * @return
+	 * @throws IOException
+	 */
+	public static Map<Integer, Set<Integer>> getNodeIncomingNeighbors(String inputFileFoldPath) throws IOException{
+		Map<Integer, Set<Integer>> nodeNeighborMap = new HashMap<Integer, Set<Integer>>();
+
+		String tripleFilePath = inputFileFoldPath + "\\entity-ids";
+		String entityFilePath = inputFileFoldPath + "\\triple";
+		FileReader fr1 = new FileReader(tripleFilePath);
+		FileReader fr2 = new FileReader(entityFilePath);
+		BufferedReader br1 = new BufferedReader(fr1);
+		BufferedReader br2 = new BufferedReader(fr2);
+		String line = "";
+		// 添加顶点进入
+		while ((line = br1.readLine()) != null) {
+			String[] lineArr = line.split(":");
+			Integer key = Integer.parseInt(lineArr[0]);
+			HashSet<Integer> neighborSet = new HashSet<>();
+			nodeNeighborMap.put(key, neighborSet);
+
+		}
+		// 添加边
+		while ((line = br2.readLine()) != null) {
+			String[] lineArr = line.split(" ");
+			//宾语作key，主语作value，收集有多少点指向宾语
+			Integer key = Integer.parseInt(lineArr[2]);
+			Integer neighbor = Integer.parseInt(lineArr[0]);
+			nodeNeighborMap.get(key).add(neighbor);		   
+		}
+		br1.close();
+		br2.close();
+	/*	for(Entry<Integer, Set<Integer>> entry: nodeNeighborMap.entrySet()){
+			for(Integer node: entry.getValue()){
+			System.out.println(entry.getKey() + "has neighbor---->" + node);
+			}
+			System.out.println("-----------");
+		}*/
+		
+		return nodeNeighborMap;
+	}
+	
 	public static void main(String[] args) throws IOException{
-		getNodeNeighbors("C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\icpw-2009-complete");
+		HashMap<Integer, Set<Integer>>  nodeNeigborsMap = (HashMap<Integer, Set<Integer>>) getNodeOutgoingNeighbors("C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\LinkedMDB2");
+        for(Entry<Integer, Set<Integer>> entry : nodeNeigborsMap.entrySet()){
+        	System.out.println(entry.getKey() + " -- ");
+        	for(Integer item : entry.getValue()){
+        		System.out.print(item.intValue() + " \n");
+        	}
+        System.out.println("-------");	
+        }
+        
+	   
 	}
 }
