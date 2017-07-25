@@ -6,6 +6,8 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Map.Entry;
 
+import com.seu.ldea.history.RescalDistance;
+
 import java.util.Scanner;
 
 /**

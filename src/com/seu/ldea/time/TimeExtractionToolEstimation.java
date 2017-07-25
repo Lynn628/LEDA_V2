@@ -13,12 +13,13 @@ import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 
-import com.seu.ldea.cluster.Dataset;
+import com.seu.ldea.entity.Dataset;
 import com.seu.ldea.entity.ResourceInfo;
 import com.seu.ldea.entity.TimeSpan;
-import com.seu.ldea.query.SparqlQuery;
-import com.seu.ldea.util.SUTimeTool2;
+import com.seu.ldea.history.LabelResourceWithTimeTest;
+import com.seu.ldea.util.SUTimeExtraction;
 import com.seu.ldea.util.URIUtil;
+import com.seu.ldea.virtuoso.SparqlQuery;
 
 import edu.stanford.nlp.pipeline.AnnotationPipeline;
 import edu.stanford.nlp.time.TimeExpression;
@@ -65,7 +66,7 @@ public class TimeExtractionToolEstimation {
 	 */
 	public static void timeExtraction(Dataset dataset, String dstName, String dirPath) throws IOException {
 
-		AnnotationPipeline pipeline = SUTimeTool2.PipeInit();
+		AnnotationPipeline pipeline = SUTimeExtraction.PipeInit();
 		ResultSet resultSet = SparqlQuery.getAllTriplesResultSet(dataset);
 		String dstPath = "C://Users//Lynn//Desktop//Academic//LinkedDataProject//TimeExtractionResultFile//timetoolEstimation//" + dstName
 				+ ".txt";
@@ -97,7 +98,7 @@ public class TimeExtractionToolEstimation {
 				subStr = URIUtil.processURI(subStr);
 				// **************时间抽取区域*********************
 				// 对资源URI进行时间信息的抽取
-				List<CoreMap> subTimeList = SUTimeTool2.SUTimeJudgeFunc(pipeline, subStr);
+				List<CoreMap> subTimeList = SUTimeExtraction.SUTimeJudgeFunc(pipeline, subStr);
 				// 如果主语URI包含时间信息
 				System.out.println("subTimeList size " + subTimeList.size());
 				if (!subTimeList.isEmpty()) {
@@ -121,7 +122,7 @@ public class TimeExtractionToolEstimation {
 				if (URIUtil.judgeURI(objStr)) {
 					// **************时间抽取区域*********************
 					objStr = URIUtil.processURI(objStr);
-					List<CoreMap> objTimeList = SUTimeTool2.SUTimeJudgeFunc(pipeline, objStr);
+					List<CoreMap> objTimeList = SUTimeExtraction.SUTimeJudgeFunc(pipeline, objStr);
 						for (CoreMap cm : objTimeList) {
 							String time1 = cm.get(TimeExpression.Annotation.class).getTemporal().toString();
 							//LabelResourceWithTimeTest.labelResource(objId, "createdDate", time);
@@ -133,7 +134,7 @@ public class TimeExtractionToolEstimation {
 				}
 			} else {
 				// 当Object为字符串
-			    List<CoreMap> list = SUTimeTool2.SUTimeJudgeFunc(pipeline, objStr);
+			    List<CoreMap> list = SUTimeExtraction.SUTimeJudgeFunc(pipeline, objStr);
 				if (!list.isEmpty()) {				
 					String time = LabelResourceWithTimeTest.getTimeInLiteral(list, objStr);
 				      if(!time.equals("")){

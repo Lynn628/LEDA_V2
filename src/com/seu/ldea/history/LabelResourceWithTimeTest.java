@@ -1,4 +1,4 @@
-package com.seu.ldea.time;
+package com.seu.ldea.history;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -17,12 +17,12 @@ import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 
-import com.seu.ldea.cluster.Dataset;
+import com.seu.ldea.entity.Dataset;
 import com.seu.ldea.entity.ResourceInfo;
 import com.seu.ldea.entity.TimeSpan;
-import com.seu.ldea.query.SparqlQuery;
-import com.seu.ldea.util.SUTimeTool2;
+import com.seu.ldea.util.SUTimeExtraction;
 import com.seu.ldea.util.URIUtil;
+import com.seu.ldea.virtuoso.SparqlQuery;
 
 import edu.stanford.nlp.pipeline.AnnotationPipeline;
 import edu.stanford.nlp.time.TimeExpression;
@@ -60,7 +60,7 @@ public class LabelResourceWithTimeTest {
 	// dataset)
 	public static HashMap<Integer, ResourceInfo> timeExtraction(Dataset dataset, String dstName, String dirPath) throws IOException {
 
-		AnnotationPipeline pipeline = SUTimeTool2.PipeInit();
+		AnnotationPipeline pipeline = SUTimeExtraction.PipeInit();
 		ResultSet resultSet = SparqlQuery.getAllTriplesResultSet(dataset);
 
 		/*
@@ -88,7 +88,7 @@ public class LabelResourceWithTimeTest {
 				subStr = URIUtil.processURI(subStr);
 				// **************时间抽取区域*********************
 				// 对资源URI进行时间信息的抽取
-				List<CoreMap> subTimeList = SUTimeTool2.SUTimeJudgeFunc(pipeline, subStr);
+				List<CoreMap> subTimeList = SUTimeExtraction.SUTimeJudgeFunc(pipeline, subStr);
 				// 如果主语URI包含时间信息
 				if (!subTimeList.isEmpty()) {
 					// 若当前节点没有贴上时间标签
@@ -116,7 +116,7 @@ public class LabelResourceWithTimeTest {
 				if (URIUtil.judgeURI(objStr)) {
 					// **************时间抽取区域*********************
 					objStr = URIUtil.processURI(objStr);
-					List<CoreMap> objTimeList = SUTimeTool2.SUTimeJudgeFunc(pipeline, objStr);
+					List<CoreMap> objTimeList = SUTimeExtraction.SUTimeJudgeFunc(pipeline, objStr);
 					if (!objTimeList.isEmpty()) {
 						if (!resourceTimeInfo.containsKey(objId)) {
 							// 给当前资源创建信息标签
@@ -132,7 +132,7 @@ public class LabelResourceWithTimeTest {
 			} else {
 				// 当Object为字符串
 				// **************时间抽取区域*********************
-			    List<CoreMap> list = SUTimeTool2.SUTimeJudgeFunc(pipeline, objStr);
+			    List<CoreMap> list = SUTimeExtraction.SUTimeJudgeFunc(pipeline, objStr);
 				if (!list.isEmpty()) {
 					if (!resourceTimeInfo.containsKey(subId)) {
 						// 给当前资源创建信息标签

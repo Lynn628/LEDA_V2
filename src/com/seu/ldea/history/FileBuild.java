@@ -1,4 +1,4 @@
-package com.seu.ldea.rescal;
+package com.seu.ldea.history;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -16,6 +16,7 @@ import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.tdb.TDBFactory;
 
+import com.seu.ldea.rescal.TopKPredicate;
 import com.seu.ldea.util.*;
 
 

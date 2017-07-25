@@ -28,25 +28,29 @@ import edu.stanford.nlp.pipeline.AnnotationPipeline;
 import edu.stanford.nlp.time.TimeExpression;
 import edu.stanford.nlp.util.CoreMap;
 
-public class LabelResourceWithTime {
+public class LabelResourceWithTime2 {
 	/**
 	 * Resource map,存储资源和资源的id
 	 */
 	// public static HashMap<String, Integer> resourceMap = new HashMap<>();
-	public static HashMap<String, Integer> rMap;
+	public HashMap<String, Integer> rMap;
 	/**
 	 * Predicate map,存储谓语和谓语的id
 	 */
 	// public static HashMap<String, Integer> predicateMap = new HashMap<>();
-	public static HashMap<String, Integer> pMap;
+	public HashMap<String, Integer> pMap;
 
 	// 存储主语id和谓语id和时间区间set，即每个resource的时间信息
-	public static HashMap<Integer, HashMap<Integer, HashSet<TimeSpan>>> timeInfoMap = new HashMap<>();
+	public HashMap<Integer, HashMap<Integer, HashSet<TimeSpan>>> timeInfoMap = new HashMap<>();
 	/**
 	 * 每一个资源对象存在一个关于其时间信息的描述信息
 	 */
-	public static HashMap<Integer, ResourceInfo> resourceTimeInfo = new HashMap<>();
-
+	public HashMap<Integer, ResourceInfo> resourceTimeInfo = new HashMap<>();
+    
+	public HashMap<Integer, ResourceInfo> getResourceTimeInfo() {
+		return resourceTimeInfo;
+	}
+	
 	/**
 	 * 
 	 * @param dataset
@@ -57,7 +61,7 @@ public class LabelResourceWithTime {
 	 */
 	// public static HashMap<Integer, ResourceInfo> timeExtraction(Dataset
 	// dataset)
-	public static HashMap<Integer, ResourceInfo> timeExtraction(Dataset dataset, String dstName, String dirPath) throws IOException {
+	public HashMap<Integer, ResourceInfo> timeExtraction(Dataset dataset, String dstName, String dirPath) throws IOException {
 
 		AnnotationPipeline pipeline = SUTimeExtraction.PipeInit();
 		ResultSet resultSet = SparqlQuery.getAllTriplesResultSet(dataset);
@@ -182,7 +186,7 @@ public class LabelResourceWithTime {
 	 * @param uri
 	 * @return
 	 */
-	public static String getTimeInLiteral(List<CoreMap> list, String uri) {
+	public String getTimeInLiteral(List<CoreMap> list, String uri) {
 		    double maxPercentage = 0;
 		    String timeInfo = "";
 		    String result = "";
@@ -205,7 +209,7 @@ public class LabelResourceWithTime {
                
 	}
 
-	public static HashMap<Integer, String> reverseMap(HashMap<String, Integer> resourceMap) {
+	public HashMap<Integer, String> reverseMap(HashMap<String, Integer> resourceMap) {
 		HashMap<Integer, String> reversedMap = new HashMap<>();
 		Iterator<Entry<String, Integer>> iterator = resourceMap.entrySet().iterator();
 		while (iterator.hasNext()) {
@@ -225,7 +229,7 @@ public class LabelResourceWithTime {
 	 * @return
 	 * @throws IOException
 	 */
-	public static HashMap<String, Integer> getNodeIdMap(int type, String dir) throws IOException {
+	public HashMap<String, Integer> getNodeIdMap(int type, String dir) throws IOException {
 		HashMap<String, Integer> nodeMap = new HashMap<>();
 		String path = "";
 		if (type == 1) {
@@ -256,7 +260,7 @@ public class LabelResourceWithTime {
 	 * @param pString
 	 * @param isSelf:判断是否是当前资源自身携带的
 	 */
-	public static void labelResource(Integer nodeId, String pString, String time) {
+	public void labelResource(Integer nodeId, String pString, String time) {
 		// predicate和此predicate上的时间区间Map
 		HashMap<String, HashSet<TimeSpan>> predicateTimePairs = resourceTimeInfo.get(nodeId).getPredicateTimeMap();
 		TimeSpan span = new TimeSpan(time, time);
@@ -275,7 +279,8 @@ public class LabelResourceWithTime {
 	public static void main(String[] args) throws IOException {
 		long t1 = System.currentTimeMillis();
 		Dataset dataset = new Dataset("jdbc:virtuoso://localhost:1111", "http://LDEA/SWCC.org", "dba", "dba");
-		timeExtraction(dataset, "SWCCTimeTest4",
+		LabelResourceWithTime2 labelResource = new LabelResourceWithTime2();
+		labelResource.timeExtraction(dataset, "SWCCTimeTest4",
 				"C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\SWCC2");
 		long t2 = System.currentTimeMillis();
 		System.out.println("time cost ----- " + (t2-t1)/1000);

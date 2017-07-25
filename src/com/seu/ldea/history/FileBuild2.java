@@ -1,4 +1,4 @@
-package com.seu.ldea.rescal;
+package com.seu.ldea.history;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -105,7 +105,7 @@ public class FileBuild2 {
 
 			RDFNode obj = statement.getObject();
 			String objStr = obj.toString();
-           、、、
+          
            //下面的限制条件可能需要修改，使得predicate能够完整
 			if (sub instanceof Resource && obj instanceof Resource) {
 				if (!rMap.containsKey(subStr)) {

@@ -16,23 +16,64 @@ import com.seu.ldea.time.InteractiveMatrix;
 import com.seu.ldea.time.LabelClassWithTime;
 import com.seu.ldea.util.BuildFromFile;
 
-/**
- * 在slicedatabuild的基础上，提供先选择某一类型的实体，然后依据其类型的实体找其相连的边
- * @author Lynn
- *
- */
-public class SliceDataBuild {
-	public static LinkedHashMap<Integer, HashSet<Integer>> timeEntitySlices;
-	public static HashMap<Integer, Integer> resourceTypeMap;
-	// 资源以及资源时间信息的映射
-	public static HashMap<Integer, ResourceInfo> resourceTimeInfo;
+import de.unihd.dbs.heideltime.standalone.components.impl.TimeMLResultFormatter;
+
+public class SliceDataBuild2 {
+	public LinkedHashMap<Integer, HashSet<Integer>> timeEntitySlices;
+	public HashMap<Integer, Integer> resourceTypeMap;
+	
 	// 资源的邻居与资源之间的映射
-	public static HashMap<Integer, HashSet<Integer>> resourceOutgoingNeighborMap;
-	public static HashMap<Integer, HashSet<Integer>> resourceIncomingNeighborMap;
+	public HashMap<Integer, HashSet<Integer>> resourceOutgoingNeighborMap;
+	public HashMap<Integer, HashSet<Integer>> resourceIncomingNeighborMap;
 
+	
+	public SliceDataBuild2(){
+		
+	}
+
+	private SliceDataBuild2(LinkedHashMap<Integer, HashSet<Integer>> timeEntitySlices,
+			HashMap<Integer, Integer> resourceTypeMap,
+			HashMap<Integer, HashSet<Integer>> resourceOutgoingNeighborMap,
+			HashMap<Integer, HashSet<Integer>> resourceIncomingNeighborMap) {
+		super();
+		this.timeEntitySlices = timeEntitySlices;
+		this.resourceTypeMap = resourceTypeMap;
+		this.resourceOutgoingNeighborMap = resourceOutgoingNeighborMap;
+		this.resourceIncomingNeighborMap = resourceIncomingNeighborMap;
+	}
+     
+	
+	
+	public void setResourceIncomingNeighborMap(HashMap<Integer, HashSet<Integer>> resourceIncomingNeighborMap) {
+		this.resourceIncomingNeighborMap = resourceIncomingNeighborMap;
+	}
+
+	public void setResourceOutgoingNeighborMap(HashMap<Integer, HashSet<Integer>> resourceOutgoingNeighborMap) {
+		this.resourceOutgoingNeighborMap = resourceOutgoingNeighborMap;
+	}
 	
 	
 
+	public void setResourceTypeMap(HashMap<Integer, Integer> resourceTypeMap) {
+		this.resourceTypeMap = resourceTypeMap;
+	}
+	
+	public void setTimeEntitySlices(LinkedHashMap<Integer, HashSet<Integer>> timeEntitySlices) {
+		this.timeEntitySlices = timeEntitySlices;
+	}
+
+
+	public static SliceDataBuild2 initSliceDataBuild(LinkedHashMap<Integer, HashSet<Integer>> timeEntitySlices, String rescalInputDir) throws IOException{
+		HashMap<Integer, Integer>  resourceTypeMap =  ResourceInfo.getReourceTypeMap(rescalInputDir);
+		HashMap<Integer, HashSet<Integer>> resourceIncomingNeighborMap = GraphUtil
+				.getNodeIncomingNeighbors(rescalInputDir);
+		HashMap<Integer, HashSet<Integer>> resourceOutgoingNeighborMap = GraphUtil
+				.getNodeOutgoingNeighbors(rescalInputDir);
+		SliceDataBuild2 sliceDataBuild = new SliceDataBuild2(timeEntitySlices, resourceTypeMap, resourceOutgoingNeighborMap, resourceIncomingNeighborMap); 
+		return sliceDataBuild;
+
+	}
+	
 	/**
 	 * 
 	 * @param dir， rescal输入文件地址
@@ -41,7 +82,7 @@ public class SliceDataBuild {
 	 * @return 时间片以及每个时间片上的点的集合
 	 * @throws IOException
 	 */
-	public static LinkedHashMap<Integer, HashSet<Integer>> getSliceLinkedNodes(String dir, int studiedClassId, int segmentClassId)
+	public LinkedHashMap<Integer, HashSet<Integer>> getSliceLinkedNodes(String dir, int studiedClassId, int segmentClassId)
 			throws IOException {
 		// 时间片编号以及上面所有的点的集合
 		LinkedHashMap<Integer, HashSet<Integer>> result = new LinkedHashMap<>();
@@ -94,7 +135,7 @@ public class SliceDataBuild {
 		return result;
 	}
 	
-
+	
 	
 	
 	/**
@@ -114,7 +155,7 @@ public class SliceDataBuild {
 	 * @param recursionRound 迭代次数
 	 * @return
 	 */
-	public static HashSet<Integer> findConnectedNodes(int targetNodeId, int studiedClassId, int segementClassId, int recursionRound) {
+	public HashSet<Integer> findConnectedNodes(int targetNodeId, int studiedClassId, int segementClassId, int recursionRound) {
 		if (recursionRound == 0)
 			return null;
 		
@@ -250,9 +291,11 @@ public class SliceDataBuild {
 		return result;
 	}
 	
+	
+	
 
 	public static void main(String[] args) throws IOException, ParseException {
-		String path = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\TimeExtractionResultFile\\SWCC-ResourcePTMap0706-1.txt";
+	/*	String path = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\TimeExtractionResultFile\\SWCC-ResourcePTMap0706-1.txt";
 		String rescalInputDir = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\SWCC2";
 
 		HashMap<Integer, ResourceInfo> noTypeResourceTimeInfo = BuildFromFile.getResourceTimeInfo(path);
@@ -262,32 +305,56 @@ public class SliceDataBuild {
 		HashMap<Integer, HashMap<String, TimeSpan>> classPTMap = LabelClassWithTime.getClassTimeSpanInfo(classTimeInfo,
 				"");
 		DatasetSegmentation.interactiveMatrix = InteractiveMatrix.getInteractiveMatrix(classPTMap);
+		SliceDataBuild2 sliceBuild = new SliceDataBuild2();
 		// 依据类型切分数据集，以及每个数据集上面的时间实体的集合
-		timeEntitySlices = DatasetSegmentation.segmentDataSet(37, "http://swrc.ontoware.org/ontology#year");
-		/*System.out.println("time entity slice size " + timeEntitySlices.size());
+		sliceBuild.setTimeEntitySlices(DatasetSegmentation.segmentDataSet(37, "http://swrc.ontoware.org/ontology#year"));;
+		System.out.println("time entity slice size " + timeEntitySlices.size());
 		for(Entry<Integer, HashSet<Integer>> aEntry : timeEntitySlices.entrySet()){
 			System.out.println("Slice num " + aEntry.getKey());
 			for(Integer aInteger : aEntry.getValue()){
 				System.out.print(" " + aInteger);
 			}
 			System.out.println("\n");
-		}*/
+		}
 		// 获取每个资源的类型
-		resourceTypeMap = ResourceInfo.getReourceTypeMap(rescalInputDir);
+		sliceBuild.setResourceTypeMap(ResourceInfo.getReourceTypeMap(rescalInputDir));
 		
-		resourceIncomingNeighborMap = GraphUtil
-				.getNodeIncomingNeighbors(rescalInputDir);
-		resourceOutgoingNeighborMap = GraphUtil
-				.getNodeOutgoingNeighbors(rescalInputDir);
+		sliceBuild.setResourceIncomingNeighborMap(GraphUtil
+				.getNodeIncomingNeighbors(rescalInputDir));
+		sliceBuild.setResourceOutgoingNeighborMap(GraphUtil
+				.getNodeOutgoingNeighbors(rescalInputDir));
 		// resourceTimeInfo = BuildFromFile.getResourceTimeInfo(path);
 		//getSliceLinkedNodes(rescalInputDir, 6539, 37);
-		  LinkedHashMap<Integer, HashSet<Integer>> sliceNodes = SliceDataBuild.getSliceLinkedNodes(rescalInputDir, 1, 37);
+		  LinkedHashMap<Integer, HashSet<Integer>> sliceNodes = sliceBuild.getSliceLinkedNodes(rescalInputDir, 1, 37);
 	         for(Entry<Integer, HashSet<Integer>> entry : sliceNodes.entrySet()){
 	        	 System.out.println(" Slice # " + entry.getKey() + " size " + entry.getValue().size());
 	        	 for(Integer item : entry.getValue()){
 	        		 System.out.print(item + " ");
 	        	 }
 	        	 System.out.println("\n");
-	         }
+	         }*/
+		String path = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\TimeExtractionResultFile\\Jamendo-ResourcePTMap0724.txt";
+		String path2 = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\TimeExtractionResultFile\\Jamendo-ClassPTMap-0724.txt";
+		String rescalInputDir = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\Jamendo";
+		
+		LinkedHashMap<Integer, HashSet<Integer>> timeEntitySlices = DatasetSegmentation2.initDataSegment(path, path2, rescalInputDir).segmentDataSet(161771, "http://purl.org/dc/elements/1.1/date");
+         for(Entry<Integer, HashSet<Integer>> entry : timeEntitySlices.entrySet()){
+        	 System.out.println(" Slice #-- " + entry.getKey() + " size " + entry.getValue().size());
+        	 for(Integer item : entry.getValue()){
+        		 System.out.print(item + " ");
+        	 }
+        	 System.out.println("\n");
+           }
+         
+		
+		LinkedHashMap<Integer, HashSet<Integer>> sliceNodes = SliceDataBuild2.initSliceDataBuild(timeEntitySlices, rescalInputDir).getSliceLinkedNodes(rescalInputDir, -1, 161771);
+		        
+		for(Entry<Integer, HashSet<Integer>> entry : sliceNodes.entrySet()){
+		        	 System.out.println(" Slice # " + entry.getKey() + " size " + entry.getValue().size());
+		        	 for(Integer item : entry.getValue()){
+		        		 System.out.print(item + " ");
+		        	 }
+		        	 System.out.println("\n");
+		         }
 	}
 }

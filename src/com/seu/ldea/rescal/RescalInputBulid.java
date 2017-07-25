@@ -12,11 +12,11 @@ import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 
-import com.seu.ldea.cluster.Dataset;
-import com.seu.ldea.query.SparqlQuery;
+import com.seu.ldea.entity.Dataset;
 import com.seu.ldea.time.LabelResourceWithTime;
+import com.seu.ldea.virtuoso.SparqlQuery;
 
-public class VirtuosoFileBulid {
+public class RescalInputBulid {
     
 	
 	/**
@@ -119,15 +119,19 @@ public class VirtuosoFileBulid {
 	public static void main(String[] args) throws IOException, SQLException{
 		long t1 = System.currentTimeMillis();
 		 String url = "jdbc:virtuoso://localhost:1111";
-		 System.out.println("Please give the graph Name ");
+		/* System.out.println("Please give the graph Name ");
 		 Scanner sc = new Scanner(System.in);
 		 String graphName = sc.nextLine();
-		 System.out.println("Please give the directory ");
+		 System.out.println("Please give the directory name ");
 		 //fileName处理后的文件文件夹的名字
 		 String dirName = sc.nextLine();
 		 System.out.println("Please give fileName of Time info");
 		 String fileName = sc.nextLine();
-		 sc.close();
+		 sc.close();*/
+		 String graphName = "http://LDEA/Jamendo.org";
+		 String rescalFileName ="Jamendo";
+		 String rescalFilePath = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\"+ rescalFileName;
+		 String timeFileName ="Jamendo-ResourcePTMap0724";
 		 Dataset dataset = new Dataset(url, graphName, "dba", "dba");
 		 
 		/* VirtGraph graph = new VirtGraph(graphName, url, "dba", "dba");
@@ -136,9 +140,9 @@ public class VirtuosoFileBulid {
 		 VirtuosoQueryExecution virtuosoQueryExecution = VirtuosoQueryExecutionFactory.create(sparql,graph);
 		// System.out.println("test2");
 		 ResultSet resultSet = virtuosoQueryExecution.execSelect();*/
-		 rescalInputBuild(dataset , dirName);
+		 rescalInputBuild(dataset , rescalFileName);
 		 System.out.println(dataset.getpMap().size());
-		 LabelResourceWithTime.timeExtraction(dataset, fileName);
+		 LabelResourceWithTime.timeExtraction(dataset, timeFileName, rescalFilePath);
 		 long t2 = System.currentTimeMillis();
 		 System.out.println(" time cost " + (t2-t1)/1000);
 	  }

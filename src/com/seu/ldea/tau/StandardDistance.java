@@ -19,6 +19,7 @@ public class StandardDistance {
 	private static int INF = Integer.MAX_VALUE;;
 
 	/**
+	 * 非对称矩阵
 	 * 创建输入Matrix 首先读取entity-id文件获取有多少个实体，建立多少维的矩阵,其次读取triple文件，为矩阵填充值
 	 * 
 	 * @param entityFile：三元组文件
@@ -29,6 +30,7 @@ public class StandardDistance {
 	public static int[][] getMatrix(String entityFile, String tripleFile) {
 
 		int dimension = 0;
+		 //long dimension = 0;
 		try {
 			FileReader fileReader1 = new FileReader(new File(entityFile));
 			BufferedReader bufferedReader1 = new BufferedReader(fileReader1);
@@ -50,6 +52,7 @@ public class StandardDistance {
 				String[] item = line.split(" ");
 				int origin = Integer.valueOf(item[0]);
 				int end = Integer.valueOf(item[2]);
+				
 				matrix[origin][end] = 1;
 			}
 			bufferedWriter2.close();

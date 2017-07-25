@@ -36,7 +36,7 @@ public class DegreeCalculation {
 	 */
 	public static ArrayList<Entry<Integer, Double>> sortedRank(Map<Integer, Double> socreMap) throws IOException {
 		ArrayList<Entry<Integer, Double>> entryList = new ArrayList<>(socreMap.entrySet());
-		System.out.println("whether list is empty " + entryList.isEmpty());
+		//System.out.println("whether list is empty " + entryList.isEmpty());
 		Collections.sort(entryList, new Comparator<Entry<Integer, Double>>() {
 			@Override
 			public int compare(Entry<Integer, Double> o1, Entry<Integer, Double> o2) {
@@ -45,11 +45,11 @@ public class DegreeCalculation {
 			}
 		});
 
-		for (Entry<Integer, Double> item : entryList) {
+		/*for (Entry<Integer, Double> item : entryList) {
 			System.out.println("vertex " + item.getKey() + "---> " + item.getValue());
 			//bufferedWriter.write("vertex " + item.getKey() + "---> " + item.getValue());
 			//bufferedWriter.newLine();
-		}
+		}*/
 		return entryList;
 	}
 	
@@ -67,7 +67,7 @@ public class DegreeCalculation {
 	public static void main(String[] args) throws IOException{
 		long t1 = System.currentTimeMillis();
 		String path = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\LinkedMDB2";
-		sortedRank(calcPageRank(ClusterUtil.buildGraph(path)));
+		sortedRank(calcPageRank(GraphUtil.buildGraph(path)));
 		long t2 = System.currentTimeMillis();
 		System.out.println("Time cost -----> " + (t2-t1)/1000 + " s");
 		

@@ -14,9 +14,10 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
-import com.seu.ldea.cluster.Dataset;
+import com.seu.ldea.entity.Dataset;
 import com.seu.ldea.entity.ResourceInfo;
 import com.seu.ldea.entity.TimeSpan;
+import com.seu.ldea.util.BuildFromFile;
 import com.seu.ldea.util.TimeUtil;
 
 /**
@@ -27,14 +28,16 @@ import com.seu.ldea.util.TimeUtil;
 public class LabelClassWithTime {
 	// 每个资源的id以及携带的时间信息
 	public static HashMap<Integer, ResourceInfo> resourceTimeInfo = new HashMap<>();
-   /**
-    *  
-    * @param dir
-    * @return
-    * @throws IOException
-    * @throws ParseException
-    */
-	public static HashMap<Integer, ResourceInfo> getClassTimeInformation(String dir, String resultFileName) throws IOException, ParseException {
+   
+	/**
+	 * 
+	 * @param dir,rescal输入文件目录
+	 * @param resultFileName, classPTMap的文件名
+	 * @return
+	 * @throws IOException
+	 * @throws ParseException
+	 */
+	public static HashMap<Integer, ResourceInfo> getClassTimeInformation(String dir) throws IOException, ParseException {
 		// 存储具有时间信息的类以及其时间标签
 		HashMap<Integer, ResourceInfo> classTimeInfo = new HashMap<>();
 		String wordsFile = dir + "\\words";
@@ -109,9 +112,9 @@ public class LabelClassWithTime {
 			}
 		}
 	
-	getClassTimeSpanInfo(classTimeInfo , resultFileName);
+	//getClassTimeSpanInfo(classTimeInfo , resultFileName);
 	
-	String dstFile = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\TimeExtractionResultFile\\SWCC-class-time-set.txt";
+	/*String dstFile = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\TimeExtractionResultFile\\SWCC-class-time-set.txt";
 		FileWriter fileWriter = new FileWriter(dstFile);
 		BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
 		for (Entry<Integer, ResourceInfo> entry : classTimeInfo.entrySet()) {
@@ -121,7 +124,7 @@ public class LabelClassWithTime {
 			bufferedWriter.newLine();
 			bufferedWriter.flush();
 		}
-		bufferedWriter.close();
+		bufferedWriter.close();*/
 		//return classTimeLabels;
 		return  classTimeInfo;
 	}
@@ -213,11 +216,14 @@ public class LabelClassWithTime {
 
 	public static void main(String[] args) throws IOException, ParseException {
 		long t1 = System.currentTimeMillis();
-		Dataset dataset = new Dataset("jdbc:virtuoso://localhost:1111", "http://LDEA/SWCC.org", "dba", "dba");
-		resourceTimeInfo = LabelResourceWithTimeTest2.timeExtraction(dataset, "LinkedMDB2-Class-ExtractionEstimation4",
-				"C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\SWCC2");
+	/*	Dataset dataset = new Dataset("jdbc:virtuoso://localhost:1111", "http://LDEA/SWCC.org", "dba", "dba");
+		resourceTimeInfo = LabelResourceWithTimeTest2.timeExtraction(dataset, "LinkedMDB2-ResourcePTMap0709-1",
+				"C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\LinkedMDB2");*/
+		String path = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\TimeExtractionResultFile\\Jamendo-ResourcePTMap0724.txt";
+		resourceTimeInfo = BuildFromFile.getResourceTimeInfo(path);
 		System.out.println("resourceTimeInfoSize in Main ---" + resourceTimeInfo.size());
-		getClassTimeInformation("C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\SWCC2" , "SWCCWithoutLabelComment");
+		HashMap<Integer, ResourceInfo> classTimeInfo = getClassTimeInformation("C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\Jamendo");
+		getClassTimeSpanInfo(classTimeInfo,"Jamendo-ClassPTMap-0724");
 		long t2 = System.currentTimeMillis();
 		double timeCost = (t2 - t1) / 1000.0;
 		System.out.println("End of main~~~~~~time cost " + timeCost + "s");

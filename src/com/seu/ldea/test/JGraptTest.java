@@ -16,7 +16,8 @@ import org.jgrapht.graph.specifics.DirectedSpecifics;
 
 public class JGraptTest {
    public static void main(String[] args){
-	  Graph<Integer, DefaultEdge> testGraph = createGraph();
+	  //Graph<Integer, DefaultEdge> testGraph = createGraph();
+	   System.out.println(1/(2 * 1.0));
 	 /* Set<DefaultEdge> edgeSet =   testGraph.edgesOf(1);
 	  for(DefaultEdge edge: edgeSet){
 		 System.out.println(testGraph.getEdgeSource(edge));

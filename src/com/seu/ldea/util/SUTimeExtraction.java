@@ -1,5 +1,6 @@
 package com.seu.ldea.util;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Properties;
 
@@ -17,7 +18,7 @@ import edu.stanford.nlp.time.TimeExpression;
 import edu.stanford.nlp.util.CacheMap;
 import edu.stanford.nlp.util.CoreMap;
 
-public class SUTimeTool2 {
+public class SUTimeExtraction {
 	
 	/**
 	 * Initialize the annotationPipeline
@@ -91,24 +92,25 @@ public class SUTimeTool2 {
 		AnnotationPipeline pipeline = PipeInit();
 		//http://data.semanticweb.org/conference/xperience/2012  XML Summer School 2015
 		//String text = "In order to make SPARQL queries more accessible to users, we have developed the visual query language QueryVOWL. It defines SPARQL mappings for graphical elements of the ontology visualization VOWL. In this demo, we present a web-based prototype that supports the creation, modification, and evaluation of QueryVOWL graphs. Based on the selected SPARQL endpoint, it provides suggestions for extending the query, and retrieves IRIs and literals according to the selections in the QueryVOWL graph. In contrast to related work, SPARQL queries can be created entirely with visual elements.";
-		String text = "2012-05-30T18:30:00";
+		String text = "2012-05-30";
 		//String text = URIUtil.processURI(uri);
 		System.out.println(text);
 		List<CoreMap> timexAnnsAll = SUTimeJudgeFunc(pipeline, text);
 		double maxPercentage = 0;
 		for(CoreMap cm : timexAnnsAll){
+			System.out.println("cm size " + cm.size() +" " + cm.toString().length() + " text length " + text.length());
 			double percentage = cm.size()/(text.length()*1.0);
 			if(maxPercentage < percentage){
 				maxPercentage = percentage;
 			}
 		  // if(maxPercentage > 0.6){
 			List<CoreLabel> tokens = cm.get(CoreAnnotations.TokensAnnotation.class);
-			System.out.println(cm + "[from char offset" + 
+			System.out.println(cm  + "[from char offset" + 
 			          tokens.get(0).get(CoreAnnotations.CharacterOffsetBeginAnnotation.class) + 
 			          " to " + tokens.get(tokens.size() - 1).get(CoreAnnotations.CharacterOffsetEndAnnotation.class) + ']' +
 			          "-->" + cm.get(TimeExpression.Annotation.class).getTemporal() );
 			System.out.println(" -- ");
-		    System.out.println(SUTimeTool2.SUTimeJudgeFunc(pipeline, text).size());
+		    System.out.println(SUTimeExtraction.SUTimeJudgeFunc(pipeline, text).size());
 		   }
 		System.out.println(getTimeInLiteral(timexAnnsAll, text));
 	//}

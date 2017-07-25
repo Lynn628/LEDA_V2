@@ -1,4 +1,4 @@
-package com.seu.ldea.time;
+package com.seu.ldea.history;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -129,7 +129,7 @@ public class LabelResourceTimeInfo {
 	public static HashMap<Integer, ResourceInfo> timeExtraction(Model model) {
 		// System.out.println("Begin process the triple ");
 		// initialize the annotationPipeline
-		AnnotationPipeline pipeline = SUTimeTool2.PipeInit();
+		AnnotationPipeline pipeline = SUTimeExtraction.PipeInit();
 		// 获取model的statement
 		StmtIterator iterator = model.listStatements();
 		// 给资源编号
@@ -160,7 +160,7 @@ public class LabelResourceTimeInfo {
 			String newSub = URIUtil.processURI(resourceStr);
 			//**************时间抽取区域*********************
 			// 对资源URI进行时间信息的抽取
-			List<CoreMap> subURIList = SUTimeTool2.SUTimeJudgeFunc(pipeline, newSub);
+			List<CoreMap> subURIList = SUTimeExtraction.SUTimeJudgeFunc(pipeline, newSub);
 			//************************************
 			// 如果主语URI包含时间信息
 			if (!subURIList.isEmpty()) {
@@ -203,7 +203,7 @@ public class LabelResourceTimeInfo {
 				//**************时间抽取区域*********************
 				// 对Object时间信息的抽取可以用一个方法封装起来，替换URIUtil.processURI,SUTimeJudge
 				String newObj = URIUtil.processURI(object.toString());
-				List<CoreMap> objURIList = SUTimeTool2.SUTimeJudgeFunc(pipeline, newObj);
+				List<CoreMap> objURIList = SUTimeExtraction.SUTimeJudgeFunc(pipeline, newObj);
 				//************************************
 				if (!objURIList.isEmpty()) {
 					if (!resourceTimeInfo.containsKey(currentRId)) {
@@ -224,7 +224,7 @@ public class LabelResourceTimeInfo {
 				
 				
 				//***************************
-				List<CoreMap> list = SUTimeTool2.SUTimeJudgeFunc(pipeline, objectStr);
+				List<CoreMap> list = SUTimeExtraction.SUTimeJudgeFunc(pipeline, objectStr);
 				
 				if (!list.isEmpty()) {
 					if (!resourceTimeInfo.containsKey(currentRId)) {
