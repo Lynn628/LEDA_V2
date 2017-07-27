@@ -95,16 +95,6 @@ public class StandardDistance {
 		return matrix;
 	}
 
-	/**
-	 * 迪杰斯特拉方法计算任意两点之间的距离
-	 * 
-	 * @param matrix
-	 * @return
-	 */
-	public static int[][] djistraDistance(int[][] matrix) {
-
-		return null;
-	}
 
 	/**
 	 * 将标准距离进行排序
