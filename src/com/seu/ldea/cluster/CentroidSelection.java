@@ -3,17 +3,14 @@ package com.seu.ldea.cluster;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Scanner;
 import java.util.Map.Entry;
 
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultEdge;
 
 import com.seu.ldea.entity.Dataset;
-import com.seu.ldea.history.RescalDistanceTest;
 
 public class CentroidSelection {
 	public static Graph<Integer, DefaultEdge> graph;
@@ -21,7 +18,6 @@ public class CentroidSelection {
 	// 记录输出日志
 	public static FileWriter fileWriter;
 	public static BufferedWriter bufferedWriter;
-
 	/**
 	 * 依据k值以及中心度计算方法，获取候选质心集合
 	 * 
@@ -32,7 +28,7 @@ public class CentroidSelection {
 	 * @return
 	 * @throws IOException
 	 */
-	public static int[] getCandidateNodes(int num, int type) throws IOException {
+	public static int[] getCandidateNodes(int num, int type, HashMap<Integer, String> classTypeId) throws IOException {
 		System.out.println("Candidate nodes set size is " + num);
 		/*
 		 * bufferedWriter.write("Candidate nodes set size is--> " + num);
@@ -40,55 +36,85 @@ public class CentroidSelection {
 		 */
 		// bufferedWriter.close();
 		int[] candidateNodes = new int[num];
+		if(type == 1){
+			//用来走pagerank全体数据的指针
+			int j = 0;
+			ArrayList<Entry<Integer, Double>> pagerankList = DegreeCalculation.getSortedDegree(graph, type);
+			System.out.println("pagerank list == null ? " + pagerankList.size());
+			int totalNum = pagerankList.size();
+			int candidateRealSize = 0;
+			for(int i = 0; i < num; i++){
+				while(j >= 0 && totalNum >j){
+					Integer currentId = pagerankList.get(j).getKey();
+					if(classTypeId.containsKey(currentId)){
+						j++;
+					}else{
+						j++;
+						candidateRealSize++;
+						candidateNodes[i] = currentId;
+						//出while循环
+						break;
+					}
+				}
+				System.out.println("-- j is " + j + " real size is " + candidateRealSize);
+				//已到pagerank末尾，没有值赋给canddidateNodes
+				if(j == totalNum){
+					break;//出for循环
+				}
+			}
+			
+			if(candidateRealSize < num){
+				int[] newCandidateNodes = new int[candidateRealSize];
+				for(int i = 0; i < candidateRealSize; i++)
+					newCandidateNodes[i] = candidateNodes[i];
+				
+				System.out.println("************ newCandidate arr length " + newCandidateNodes.length);
+				return newCandidateNodes;
+			}else{
+				//取得num个大小的candidate nodes
+				return candidateNodes;
+			}
+		}
+		
 		// 1 表示PageRank
-		if (type == 1) {
+		/*不剔除class点的候选质心选择策略
+		 * if (type == 1) {
 			int j = 0;
 			// 后期查询数据库，现阶段保存在内存
 			for (int i = 0; i < num; i++) {
 				candidateNodes[i]  = DegreeCalculation.getSortedDegree(graph, type).get(i).getKey();
-				/*
+				
 				 * bufferedWriter.write("cadidate nodes " + i + " is--> " +
 				 * candidateNodes[i]); bufferedWriter.newLine();
-				 */
+				 
 			}
-		}
+		}*/
 		return candidateNodes;
 
 	}
 
+
 	/**
 	 * 选取最终生成簇的中心点， 中心度高，且相互之间距离较远,候选点与中心点集合中的点的距离都远
-	 * 
 	 * @param ingraph
+	 * @param entityVectors
 	 * @param k
-	 * @param vectorDistance
-	 * @param type,pagerank...
+	 * @param type,,pagerank...
+	 * @param classTypeId, 给出class id的集合，用于查找候选点时进行排除
 	 * @return
 	 * @throws IOException
 	 */
 	public static int[] getCentroidNodes(Graph<Integer, DefaultEdge> ingraph, ArrayList<Double[]> entityVectors,
-			int k, int type) throws IOException {
+			int k, int type, HashMap<Integer, String> classTypeId) throws IOException {
 		graph = ingraph;
 		int candidateNum = k * 10;
 		int[] candidateNodes;
 		if(candidateNum <= ingraph.vertexSet().size()){
-		candidateNodes = getCandidateNodes(k * 10, type);
+		candidateNodes = getCandidateNodes(k * 10, type, classTypeId );
 		}else {
-		candidateNodes = getCandidateNodes(ingraph.vertexSet().size(), type);	
+		candidateNodes = getCandidateNodes(ingraph.vertexSet().size(), type, classTypeId);	
 		}
-		//HashMap<Integer, String> datasetClass = Dataset.getDataSetClass("C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\Jamendo", "JamendoClassIndex");
-		//ArrayList<Integer> candidateArr = new ArrayList<>();
-		/*//清洗candidateNodes里面不包含class类别的点
-		for(int i = 0; i < candidateNodes1.length; i++){
-			if(!datasetClass.containsKey(candidateNodes1[i])){
-				candidateArr.add(candidateNodes1[i]);
-			}
-		}
-		int[] candidateNodes = new int[candidateArr.size()];
-		for(Integer i = 0; i < candidateArr.size(); i++){
-			candidateNodes[i] = candidateArr.get(i);
-		}
-		*/
+		
 		int[] centroidNodes = new int[k];
 		// 中心点初始化
 		for (int i = 0; i < k; i++)
@@ -119,7 +145,7 @@ public class CentroidSelection {
 									candidateNodes[i], centroidNodes[j]);
 							
                              // System.out.println("distance****" + distance );
-							// 选取局部最小的距离
+							// 选取局部最小的距离,distance越小，越不相似，离中心点越远
 							if (distance.compareTo(localMinimal) < 0) {
 								localMinimal = distance;
 								//System.out.println("distance****" + localMinimal );
@@ -151,33 +177,18 @@ public class CentroidSelection {
 		long begin = System.currentTimeMillis();
 		fileWriter = new FileWriter("C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\log.txt");
 		bufferedWriter = new BufferedWriter(fileWriter);
-		Scanner scanner = new Scanner(System.in);
-		// path 文件路径,rescal输入文件的目录地址
-		System.out.println("Please give  file path ");
-		String directoryPath = scanner.nextLine();
-		System.out.println("Please give embedding file path ");
-		String embedingPath = scanner.nextLine();
-		System.out.println("Please give the vector calculation method ");
-		String method = scanner.nextLine();
-		scanner.close();
+		
+		String directoryPath = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\Jamendo";
+		String embedingPath = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\NormalizedEmbeddingFile\\NormalizedJamendo-latent10.txt";
+		String method = "Cosine-2";
 		Dataset dataset = new Dataset(directoryPath, embedingPath);
 		graph = GraphUtil.buildGraph(dataset.getDatasetEmbedingPath());
-		// sortedRank(calcPageRank(graph));
-		HashMap<Integer, HashMap<Integer, Double>> vectorDistance = RescalDistanceForCluster
-				.calcVectorDistance(dataset.getDatasetEmbedingPath(), method);
-		int size = vectorDistance.size();
-		// System.out.println("matrix size is ++++++++++++++++" + size);
-		for (int i = 0; i < size; i++) {
-			bufferedWriter.write(i + " : ");
-			for (int j = 0; j < size; j++) {
-				System.out.print(i + "-" + j + " : " + vectorDistance.get(i).get(j) + " ");
-				bufferedWriter.write(i + "-" + j + " : " + vectorDistance.get(i).get(j).toString() + " ");
-			}
-			bufferedWriter.newLine();
-
-		}
+	
 		ArrayList<Double[]> entityVectors = RescalDistanceForCluster.getNodeVector(embedingPath);
-		getCentroidNodes(graph,entityVectors, 5, 1);
+		//给予class id
+		HashMap<Integer, String> classTypeId = Dataset.getDataSetClass(directoryPath, "");
+	    System.out.println("entity vector is null ? " + entityVectors.size());
+		getCentroidNodes(graph,entityVectors, 5, 1, classTypeId);
 		bufferedWriter.close();
 		long end = System.currentTimeMillis();
 		System.out.println("Time cost -----> " + (end - begin) / 1000 + " s");

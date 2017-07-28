@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 
+import com.seu.ldea.entity.Dataset;
 import com.seu.ldea.segment.DatasetSegmentation2;
 import com.seu.ldea.segment.SliceDataBuild;
 import com.seu.ldea.segment.SliceDataBuild2;
@@ -147,7 +148,7 @@ public class Connectedness2 {
 		 */
 
 		//String embeddingFilePath = "D:\\RESCAL\\Ext-RESCAL-master\\Ext-RESCAL-master\\Jamendo-latent10-lambda0.embeddings.txt";
-		String normalizedEmbeddingFilePath = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\NormalizedEmbeddingFile\\NormalizedJamendo-latent10.txt";
+	/*	String normalizedEmbeddingFilePath = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\NormalizedEmbeddingFile\\NormalizedJamendo-latent10.txt";
 		String path = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\TimeExtractionResultFile\\Jamendo-ResourcePTMap0724.txt";
 		String path2 = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\TimeExtractionResultFile\\Jamendo-ClassPTMap-0724.txt";
 		String rescalInputDir = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\Jamendo";
@@ -158,28 +159,29 @@ public class Connectedness2 {
 
 		LinkedHashMap<Integer, HashSet<Integer>> sliceNodes = SliceDataBuild2
 				.initSliceDataBuild(timeEntitySlices, rescalInputDir).getSliceLinkedNodes(rescalInputDir, 129827, 161771);
-		/*
+		
 		 * for(Entry<Integer, HashSet<Integer>> entry : sliceNodes.entrySet()){
 		 * System.out.println(" Slice # " + entry.getKey() + " size " +
 		 * entry.getValue().size()); for(Integer item : entry.getValue()){
 		 * System.out.print(item + " "); } System.out.println("\n"); }
-		 */
+		 
 
 		resourceIncomingNeighborMap = GraphUtil.getNodeIncomingNeighbors(rescalInputDir);
 		resourceOutgoingNeighborMap = GraphUtil.getNodeOutgoingNeighbors(rescalInputDir);
         HashMap<Integer, HashSet<Integer>> nodeNeighbor = GraphUtil.getNodeNeighbors(rescalInputDir);
-		/** 每个时间片上的点进行聚类操作 **/
+		*//** 每个时间片上的点进行聚类操作 **//*
 		ArrayList<Double[]> entityVectors = RescalDistanceForCluster.getNodeVector(normalizedEmbeddingFilePath);
 		//ClusterImplementation2.entityVectors = entityVectors;
 		ClusterImplementation.entityVectors = entityVectors;
+		HashMap<Integer, String> classTypeId = Dataset.getDataSetClass(rescalInputDir, "");
 		// 时间片以及每个时间片上的簇的点
-		/*LinkedHashMap<Integer, HashMap<Integer, HashSet<Integer>>> sliceClusterNodes = ClusterImplementation2
+		LinkedHashMap<Integer, HashMap<Integer, HashSet<Integer>>> sliceClusterNodes = ClusterImplementation2
 				.getSliceClusterMap(sliceNodes, entityVectors, resourceOutgoingNeighborMap,
-						resourceIncomingNeighborMap, nodeNeighbor);*/
+						resourceIncomingNeighborMap, nodeNeighbor);
 		LinkedHashMap<Integer, HashMap<Integer, HashSet<Integer>>> sliceClusterNodes = ClusterImplementation
-				.getSliceClusterMap(sliceNodes, entityVectors, resourceOutgoingNeighborMap,
+				.getSliceClusterMap(sliceNodes, entityVectors, classTypeId, resourceOutgoingNeighborMap,
 						resourceIncomingNeighborMap);
-	/*	System.out.println("--------Test----------");
+		System.out.println("--------Test----------");
 		for (Entry<Integer, HashSet<Integer>> entry : sliceNodes.entrySet()) {
 			HashSet<Integer> aset = entry.getValue();
 			System.out.println("slice id " + aset.isEmpty());
@@ -187,7 +189,7 @@ public class Connectedness2 {
 				System.out.print(" " + bset);
 			}
 			System.out.println("\n");
-		}*/
+		}
 
 		for (Entry<Integer, HashMap<Integer, HashSet<Integer>>> entry : sliceClusterNodes.entrySet()) {
 			HashMap<Integer, HashSet<Integer>> aset = entry.getValue();
@@ -198,10 +200,50 @@ public class Connectedness2 {
 		}
 		System.out.println("Slice cluster nodes size " + sliceClusterNodes.size());
 		long t2 = System.currentTimeMillis();
-		System.out.println("Time cost " + (t2 - t1) / 1000 + " s");
+		System.out.println("Time cost " + (t2 - t1) / 1000 + " s");*/
+		String normalizedEmbeddingFilePath = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\NormalizedEmbeddingFile\\NormalizedDBLP-latent10.txt";
+		String path = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\TimeExtractionResultFile\\Jamendo-ResourcePTMap0724.txt";
+		String path2 = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\TimeExtractionResultFile\\Jamendo-ClassPTMap-0724.txt";
+		String rescalInputDir = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\Jamendo";
+
+		LinkedHashMap<Integer, HashSet<Integer>> timeEntitySlices = DatasetSegmentation2
+				.initDataSegment(path, path2, rescalInputDir)
+				.segmentDataSet(161771, "http://purl.org/dc/elements/1.1/date");
+
+		LinkedHashMap<Integer, HashSet<Integer>> sliceNodes = SliceDataBuild2
+				.initSliceDataBuild(timeEntitySlices, rescalInputDir).getSliceLinkedNodes(rescalInputDir, -1, 161771);
+		/*
+		 * for(Entry<Integer, HashSet<Integer>> entry : sliceNodes.entrySet()){
+		 * System.out.println(" Slice # " + entry.getKey() + " size " +
+		 * entry.getValue().size()); for(Integer item : entry.getValue()){
+		 * System.out.print(item + " "); } System.out.println("\n"); }
+		 */
+
+		 resourceIncomingNeighborMap = GraphUtil
+				.getNodeIncomingNeighbors(rescalInputDir);
+		 resourceOutgoingNeighborMap = GraphUtil
+				.getNodeOutgoingNeighbors(rescalInputDir);
+
+		/** 每个时间片上的点进行聚类操作 **/
+		ArrayList<Double[]> entityVectors = RescalDistanceForCluster.getNodeVector(normalizedEmbeddingFilePath);
+		ClusterImplementation.entityVectors = entityVectors;
+		HashMap<Integer, String> classTypeId = Dataset.getDataSetClass(rescalInputDir, "");
+		// 时间片以及每个时间片上的簇的点
+		LinkedHashMap<Integer, HashMap<Integer, HashSet<Integer>>> sliceClusterNodes = ClusterImplementation
+				.getSliceClusterMap(sliceNodes, entityVectors, classTypeId, resourceOutgoingNeighborMap,
+						resourceIncomingNeighborMap);
+
+		System.out.println("--------Test----------");
+		for (Entry<Integer, HashMap<Integer, HashSet<Integer>>> entry : sliceClusterNodes.entrySet()) {
+			HashMap<Integer, HashSet<Integer>> aset = entry.getValue();
+			System.out.println("aSet empty? " + aset.isEmpty());
+			for (Entry<Integer, HashSet<Integer>> bset : aset.entrySet()) {
+				System.out.println("bset cluster size -------" + bset.getValue().size());
+			}
+		}
 
 		getConnectedness(sliceNodes, sliceClusterNodes);
 		long t3 = System.currentTimeMillis();
-		System.out.println("Conntectness time cost " + (t3 - t2) / 1000 + " s");
+		System.out.println("Conntectness time cost " + (t3 - t1) / 1000 + " s");
 	}
 }

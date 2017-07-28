@@ -165,7 +165,7 @@ public class CentroidSelectionBigDecimal {
 		Dataset dataset = new Dataset(directoryPath, embedingPath);
 		graph = GraphUtil.buildGraph(dataset.getDatasetEmbedingPath());
 		// sortedRank(calcPageRank(graph));
-		HashMap<Integer, HashMap<Integer, BigDecimal>> vectorDistance = RescalDistanceTest
+		/*HashMap<Integer, HashMap<Integer, BigDecimal>> vectorDistance = RescalDistanceTest
 				.calcVectorDistance(dataset.getDatasetEmbedingPath(), method);
 		int size = vectorDistance.size();
 		// System.out.println("matrix size is ++++++++++++++++" + size);
@@ -177,7 +177,7 @@ public class CentroidSelectionBigDecimal {
 			}
 			bufferedWriter.newLine();
 
-		}
+		}*/
 		ArrayList<BigDecimal[]> entityVectors = RescalDistance.getNodeVector(embedingPath);
 		getCentroidNodes(graph,entityVectors, 5, 1);
 		bufferedWriter.close();

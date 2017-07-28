@@ -44,6 +44,8 @@ public class ClusterImplementation {
 
 		HashMap<Integer, int[]> labelMap = new HashMap<Integer, int[]>();
 		Queue<Integer> nodeQueue = new LinkedList<Integer>();
+		//List<Integer> visitedNode = new ArrayList<Integer>();
+		HashSet<Integer> visitedNode = new HashSet();
 		int[] labelArray;
 		for (int i = 0; i < centroidList.length; i++) {
 			labelArray = new int[2];
@@ -52,13 +54,13 @@ public class ClusterImplementation {
 
 			labelMap.put(centroidList[i], labelArray);
 			nodeQueue.offer(centroidList[i]);
+			visitedNode.add(centroidList[i]);
 		}
 
 		int current;
 		int tempNeighbor;
 		int[] tempArray;
 		Set<Integer> neighborSet;
-		List<Integer> visitedNode = new ArrayList<Integer>();
 
 		while (!nodeQueue.isEmpty()) {
 			// 当前点出队列
@@ -220,10 +222,23 @@ public class ClusterImplementation {
 	 */
 	public static LinkedHashMap<Integer, HashMap<Integer, HashSet<Integer>>> getSliceClusterMap(
 			LinkedHashMap<Integer, HashSet<Integer>> sliceNodes, ArrayList<Double[]> entityVectors,
+			HashMap<Integer, String> classTypeId,
 			HashMap<Integer, HashSet<Integer>> outgoingNeighborsMap,
 			HashMap<Integer, HashSet<Integer>> incomingNeighborsMap
 		) throws IOException {
-
+        //创建所有点的邻居Map，包括出度入度点
+		HashMap<Integer, HashSet<Integer>> allNeighborMap = outgoingNeighborsMap;
+         for(Entry<Integer, HashSet<Integer>> node : incomingNeighborsMap.entrySet()){
+        	 Integer nodeId = node.getKey();
+        	 HashSet<Integer> nodeIncomingNeighbor = node.getValue();
+        	 if(allNeighborMap.containsKey(nodeId)){
+        		 allNeighborMap.get(nodeId).addAll(nodeIncomingNeighbor);
+        	 }else{
+        		 allNeighborMap.put(nodeId, nodeIncomingNeighbor);
+        	 }
+         }
+		
+		
 		LinkedHashMap<Integer, HashMap<Integer, HashSet<Integer>>> result = new LinkedHashMap<>();
 		for (Entry<Integer, HashSet<Integer>> slice : sliceNodes.entrySet()) {
 			// 如果此时间片上有点
@@ -234,12 +249,13 @@ public class ClusterImplementation {
 						+ slice.getValue().size());
 				// 如果能构建图，才能算pagerank，才能选质心才能聚类
 				if (graph.vertexSet().size() > 0) {
-					int[] centroidNodesList = CentroidSelection.getCentroidNodes(graph, entityVectors, 5, 1);
+					int[] centroidNodesList = CentroidSelection.getCentroidNodes(graph, entityVectors, 5, 1,classTypeId);
+					/* HashMap<Integer, HashSet<Integer>> nodesSliceNeighbor =
+					 SliceDataBuild.getSliceNodesNeighor(slice.getValue(), incomingNeighborsMap);*/
+                     //进行标签传播不考虑方向
 					 HashMap<Integer, HashSet<Integer>> nodesSliceNeighbor =
-					 SliceDataBuild.getSliceNodesNeighor(slice.getValue(), incomingNeighborsMap);
-				/*	HashMap<Integer, HashSet<Integer>> nodesSliceNeighbor = SliceDataBuild
-							.getSliceNodesNeighor(slice.getValue(), nodeNeighborsMap);
-*/
+							 SliceDataBuild.getSliceNodesNeighor(slice.getValue(), allNeighborMap);
+					 
 					HashMap<Integer, int[]> nodeLabelMap = labelPropagation(centroidNodesList, nodesSliceNeighbor,
 							slice.getValue());
 					HashMap<Integer, HashSet<Integer>> clusters = allocateNodestoCluster(nodeLabelMap,
@@ -256,7 +272,6 @@ public class ClusterImplementation {
 			} else {
 				result.put(slice.getKey(), null);
 			}
-
 		}
 		return result;
 	}
@@ -274,7 +289,7 @@ public class ClusterImplementation {
 				.segmentDataSet(161771, "http://purl.org/dc/elements/1.1/date");
 
 		LinkedHashMap<Integer, HashSet<Integer>> sliceNodes = SliceDataBuild2
-				.initSliceDataBuild(timeEntitySlices, rescalInputDir).getSliceLinkedNodes(rescalInputDir, -1, 161771);
+				.initSliceDataBuild(timeEntitySlices, rescalInputDir).getSliceLinkedNodes(rescalInputDir, 129827, 161771);
 		/*
 		 * for(Entry<Integer, HashSet<Integer>> entry : sliceNodes.entrySet()){
 		 * System.out.println(" Slice # " + entry.getKey() + " size " +
@@ -290,9 +305,10 @@ public class ClusterImplementation {
 		/** 每个时间片上的点进行聚类操作 **/
 		ArrayList<Double[]> entityVectors = RescalDistanceForCluster.getNodeVector(normalizedEmbeddingFilePath);
 		ClusterImplementation.entityVectors = entityVectors;
+		HashMap<Integer, String> classTypeId = Dataset.getDataSetClass(rescalInputDir, "");
 		// 时间片以及每个时间片上的簇的点
 		LinkedHashMap<Integer, HashMap<Integer, HashSet<Integer>>> sliceClusterNodes = ClusterImplementation
-				.getSliceClusterMap(sliceNodes, entityVectors, resourceOutgoingNeighborMap,
+				.getSliceClusterMap(sliceNodes, entityVectors, classTypeId, resourceOutgoingNeighborMap,
 						resourceIncomingNeighborMap);
 
 		System.out.println("--------Test----------");

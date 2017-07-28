@@ -1,22 +1,17 @@
 package com.seu.ldea.time;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map.Entry;
 
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
-import org.omg.PortableServer.ServantActivator;
 
 import com.seu.ldea.entity.Dataset;
 import com.seu.ldea.entity.ResourceInfo;
@@ -194,9 +189,9 @@ public class TimeExtractionToolEstimation {
 	public static void main(String[] args) throws IOException {
 		// ¶ÁÈ¡Ä¿Â¼Â·¾¶
 		long t1 = System.currentTimeMillis();
-		Dataset dataset = new Dataset("jdbc:virtuoso://localhost:1111", "http://LDEA/Jamendo.org", "dba", "dba");
-		timeExtraction(dataset, "JamendoTimExtractionEstimation",
-				"C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\Jamendo");
+		Dataset dataset = new Dataset("jdbc:virtuoso://localhost:1111", "http://LDEA/DBLP.org", "dba", "dba");
+		timeExtraction(dataset, "DBLPTimExtractionEstimation",
+				"C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\DBLP");
 		long t2 = System.currentTimeMillis();
 			double timeCost = (t2 - t1) / 1000.0;
 			System.out.println("End of main~~~~~~time cost " + timeCost + "s");
