@@ -10,15 +10,15 @@ import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 
 import com.seu.ldea.cluster.GraphUtil;
+import com.seu.ldea.entity.Dataset;
 import com.seu.ldea.entity.ResourceInfo;
-import com.seu.ldea.entity.TimeSpan;
-import com.seu.ldea.time.InteractiveMatrix;
-import com.seu.ldea.time.LabelClassWithTime;
-import com.seu.ldea.util.BuildFromFile;
 
-import de.unihd.dbs.heideltime.standalone.components.impl.TimeMLResultFormatter;
-
-public class SliceDataBuild2 {
+/**
+ * 在Slice data build2 的基础上，创建时间片的时候不把class uri加进来 
+ * @author Lynn
+ *
+ */
+public class SliceDataBuildWithoutClassURI {
 	public LinkedHashMap<Integer, HashSet<Integer>> timeEntitySlices;
 	public HashMap<Integer, Integer> resourceTypeMap;
 	
@@ -27,11 +27,11 @@ public class SliceDataBuild2 {
 	public HashMap<Integer, HashSet<Integer>> resourceIncomingNeighborMap;
 
 	
-	public SliceDataBuild2(){
+	public SliceDataBuildWithoutClassURI(){
 		
 	}
 
-	private SliceDataBuild2(LinkedHashMap<Integer, HashSet<Integer>> timeEntitySlices,
+	private SliceDataBuildWithoutClassURI(LinkedHashMap<Integer, HashSet<Integer>> timeEntitySlices,
 			HashMap<Integer, Integer> resourceTypeMap,
 			HashMap<Integer, HashSet<Integer>> resourceOutgoingNeighborMap,
 			HashMap<Integer, HashSet<Integer>> resourceIncomingNeighborMap) {
@@ -63,13 +63,13 @@ public class SliceDataBuild2 {
 	}
 
 
-	public static SliceDataBuild2 initSliceDataBuild(LinkedHashMap<Integer, HashSet<Integer>> timeEntitySlices, String rescalInputDir) throws IOException{
+	public static SliceDataBuildWithoutClassURI initSliceDataBuild(LinkedHashMap<Integer, HashSet<Integer>> timeEntitySlices, String rescalInputDir) throws IOException{
 		HashMap<Integer, Integer>  resourceTypeMap =  ResourceInfo.getReourceTypeMap(rescalInputDir);
 		HashMap<Integer, HashSet<Integer>> resourceIncomingNeighborMap = GraphUtil
 				.getNodeIncomingNeighbors(rescalInputDir);
 		HashMap<Integer, HashSet<Integer>> resourceOutgoingNeighborMap = GraphUtil
 				.getNodeOutgoingNeighbors(rescalInputDir);
-		SliceDataBuild2 sliceDataBuild = new SliceDataBuild2(timeEntitySlices, resourceTypeMap, resourceOutgoingNeighborMap, resourceIncomingNeighborMap); 
+		SliceDataBuildWithoutClassURI sliceDataBuild = new SliceDataBuildWithoutClassURI(timeEntitySlices, resourceTypeMap, resourceOutgoingNeighborMap, resourceIncomingNeighborMap); 
 		return sliceDataBuild;
 
 	}
@@ -87,7 +87,8 @@ public class SliceDataBuild2 {
 		// 时间片编号以及上面所有的点的集合
 		LinkedHashMap<Integer, HashSet<Integer>> result = new LinkedHashMap<>();
 		resourceTypeMap = ResourceInfo.getReourceTypeMap(dir);
-       
+        HashMap<Integer, String> datasetclassURI = Dataset.getDataSetClass(dir, "JamendoClassURI");
+		
 		HashMap<Integer, String> resourceURI = ResourceInfo.getReourceURIMap(dir);
 		for (Entry<Integer, HashSet<Integer>> slice : timeEntitySlices.entrySet()) {
 			//每个时间片上的点进行处理
@@ -98,7 +99,7 @@ public class SliceDataBuild2 {
 			//找具体时间实体的某一类型的邻居
 			for (Integer timeEntityId : slice.getValue()) {
 				// 找寻以切分类型为顶点的二步邻居
-				HashSet<Integer> connectedNodes = findConnectedNodes(timeEntityId, studiedClassId, segmentClassId,2);
+				HashSet<Integer> connectedNodes = findConnectedNodes(timeEntityId, studiedClassId, segmentClassId,2, datasetclassURI);
 				if (connectedNodes != null)
 					//找到每个点的邻居节点集合，加到nodes集合中
 					nodes.addAll(connectedNodes);
@@ -156,7 +157,7 @@ public class SliceDataBuild2 {
 	 * @param recursionRound 迭代次数
 	 * @return
 	 */
-	public HashSet<Integer> findConnectedNodes(int targetNodeId, int studiedClassId, int segementClassId, int recursionRound) {
+	public HashSet<Integer> findConnectedNodes(int targetNodeId, int studiedClassId, int segementClassId, int recursionRound, HashMap<Integer, String> classURI) {
 		if (recursionRound == 0)
 			return null;
 		
@@ -172,10 +173,11 @@ public class SliceDataBuild2 {
 					result.add(targetNodeId);
 					// 把与之相连接但不是切分类型的点加进来
 					if (resourceTypeMap.containsKey(neighbor)) {
-						if (resourceTypeMap.get(neighbor).intValue() != segementClassId)
+						if (resourceTypeMap.get(neighbor).intValue() != segementClassId && !classURI.containsKey(neighbor))
 							result.add(neighbor);
 					} else {
 						// 将无类型的邻接点加进来
+						if(!classURI.containsKey(neighbor))
 						result.add(neighbor);
 					}
 				} else {
@@ -183,27 +185,28 @@ public class SliceDataBuild2 {
 					if (studiedClassId != -1) {
 						// 如果此实体有类型且是要研究的
 						if (resourceTypeMap.containsKey(neighbor)
-								&& resourceTypeMap.get(neighbor).intValue() == studiedClassId ) {
+								&& resourceTypeMap.get(neighbor).intValue() == studiedClassId && !classURI.containsKey(neighbor)) {
 							result.add(neighbor);
 							// 依据要研究的点找一步邻居，一步邻居不考虑顶点类型,但不包含切分类型的点
-							HashSet<Integer> neighbors = findConnectedNodes(neighbor, -1, segementClassId, recursionRound);
+							HashSet<Integer> neighbors = findConnectedNodes(neighbor, -1, segementClassId, recursionRound,classURI);
 							if (neighbors != null)
 								result.addAll(neighbors);
 						}
 					} else {
 						//不限定相连接点的类型，但不能是切分类型
 						if (resourceTypeMap.containsKey(neighbor)) {
-							if (resourceTypeMap.get(neighbor).intValue() != segementClassId) {
+							if (resourceTypeMap.get(neighbor).intValue() != segementClassId && !classURI.containsKey(neighbor)) {
 								result.add(neighbor);
 								HashSet<Integer> neighbors = findConnectedNodes(neighbor, -1, segementClassId,
-										recursionRound);
+										recursionRound, classURI);
 								if (neighbors != null)
 									result.addAll(neighbors);
 							}
 						} else {
 							// 无类型且相邻接的点
-							result.add(neighbor);
-							HashSet<Integer> neighbors = findConnectedNodes(neighbor, -1, segementClassId, recursionRound);
+							if(!classURI.containsKey(neighbor))
+							   result.add(neighbor);
+							HashSet<Integer> neighbors = findConnectedNodes(neighbor, -1, segementClassId, recursionRound,classURI);
 							if (neighbors != null)
 								result.addAll(neighbors);
 						}
@@ -221,10 +224,11 @@ public class SliceDataBuild2 {
 					result.add(targetNodeId);
 					// 把与之相连接但不是切分类型的点加进来
 					if (resourceTypeMap.containsKey(neighbor)) {
-						if (resourceTypeMap.get(neighbor).intValue() != segementClassId)
+						if (resourceTypeMap.get(neighbor).intValue() != segementClassId && !classURI.containsKey(neighbor))
 							result.add(neighbor);
 					} else {
 						// 将无类型的邻接点加进来
+						if(!classURI.containsKey(neighbor))
 						result.add(neighbor);
 					}
 				} else {
@@ -235,23 +239,25 @@ public class SliceDataBuild2 {
 								&& resourceTypeMap.get(neighbor).intValue() == studiedClassId) {
 							result.add(neighbor);
 							// 依据要研究的点找一步邻居，一步邻居不考虑顶点类型
-							HashSet<Integer> neighbors = findConnectedNodes(neighbor, -1, segementClassId, recursionRound);
+							HashSet<Integer> neighbors = findConnectedNodes(neighbor, -1, segementClassId, recursionRound, classURI);
 							if (neighbors != null)
 								result.addAll(neighbors);
 						}
 					} else {
 						if (resourceTypeMap.containsKey(neighbor)) {
-							if (resourceTypeMap.get(neighbor).intValue() != segementClassId) {
+							if (resourceTypeMap.get(neighbor).intValue() != segementClassId && !classURI.containsKey(neighbor)) {
 								result.add(neighbor);
 								HashSet<Integer> neighbors = findConnectedNodes(neighbor, -1, segementClassId,
-										recursionRound);
+										recursionRound, classURI);
 								if (neighbors != null)
 									result.addAll(neighbors);
 							}
 						} else {
 							// 无类型且相邻接的点
+							if(!classURI.containsKey(neighbor))
 							result.add(neighbor);
-							HashSet<Integer> neighbors = findConnectedNodes(neighbor, -1, segementClassId, recursionRound);
+							HashSet<Integer> neighbors = findConnectedNodes(neighbor, -1, segementClassId, recursionRound, classURI);
+							
 							if (neighbors != null)
 								result.addAll(neighbors);
 						}

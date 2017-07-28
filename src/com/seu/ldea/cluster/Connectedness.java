@@ -16,6 +16,7 @@ import com.seu.ldea.entity.ResourceInfo;
 import com.seu.ldea.entity.TimeSpan;
 import com.seu.ldea.segment.DatasetSegmentation;
 import com.seu.ldea.segment.SliceDataBuild;
+import com.seu.ldea.tau.RescalDistance;
 import com.seu.ldea.time.InteractiveMatrix;
 import com.seu.ldea.time.LabelClassWithTime;
 import com.seu.ldea.util.BuildFromFile;
@@ -246,9 +247,9 @@ public class Connectedness {
        
 		/** 每个时间片上的点进行聚类操作 **/
          ArrayList<BigDecimal[]> entityVectors = RescalDistance.getNodeVector(embeddingFilePath);
- 		ClusterImplementation.entityVectors = entityVectors;
+ 		ClusterImplementationBigDecimal.entityVectors = entityVectors;
 		// 时间片以及每个时间片上的簇的点
-		LinkedHashMap<Integer, HashMap<Integer, HashSet<Integer>>> sliceClusterNodes = ClusterImplementation
+		LinkedHashMap<Integer, HashMap<Integer, HashSet<Integer>>> sliceClusterNodes = ClusterImplementationBigDecimal
 				.getSliceClusterMap(sliceNodes, entityVectors, resourceOutgoingNeighborMap,
 						resourceIncomingNeighborMap);
 		System.out.println("--------Test----------");

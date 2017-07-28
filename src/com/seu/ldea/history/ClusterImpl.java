@@ -22,6 +22,7 @@ import org.jgrapht.graph.DefaultEdge;
 
 import com.seu.ldea.cluster.GraphUtil;
 import com.seu.ldea.entity.Dataset;
+import com.seu.ldea.tau.TauRescalDistanceBigDecimal;
 
 import riotcmd.infer;
 
@@ -126,7 +127,7 @@ public class ClusterImpl {
 		scanner.close();
 		HashMap<Integer, HashSet<Integer>> neighborsMap = GraphUtil.getNodeOutgoingNeighbors(dataset.getDatasetDirectory());
 		Graph<Integer, DefaultEdge> graph = GraphUtil.buildGraph(dataset.getDatasetDirectory());
-		vectorDistance = RescalDistance.calcVectorDistance(datasetEmbedingPath, "Cosine-2");
+		vectorDistance = TauRescalDistanceBigDecimal.getVectorDistanceMatrix(datasetEmbedingPath, "Cosine-2");
 		int[] centroidList = CentroidUtil.getCentroidNodes(graph, 5, vectorDistance, 1);
 		// 每个顶点以及其所属标签以及标签是由谁传播过来的信息的map
 		HashMap<Integer, int[]> labelMap = labelPropagation(centroidList, neighborsMap);

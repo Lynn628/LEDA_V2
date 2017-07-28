@@ -155,7 +155,9 @@ public class TauRescalDistanceBigDecimal {
 				@Override
 				public int compare(Entry<Integer, BigDecimal> o1, Entry<Integer, BigDecimal> o2) {
 					// 升序排序
-					return o1.getValue().compareTo(o2.getValue());
+					//return o1.getValue().compareTo(o2.getValue());
+					//余弦距离，数值越大越相似，因而需要降序排序
+					return o2.getValue().compareTo(o1.getValue());
 		       }
 		      });
 		

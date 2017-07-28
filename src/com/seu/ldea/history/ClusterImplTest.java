@@ -17,10 +17,10 @@ import java.util.Set;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultEdge;
 
-import com.seu.ldea.cluster.CentroidSelection;
+import com.seu.ldea.cluster.CentroidSelectionBigDecimal;
 import com.seu.ldea.cluster.GraphUtil;
-import com.seu.ldea.cluster.RescalDistance;
 import com.seu.ldea.entity.Dataset;
+import com.seu.ldea.tau.RescalDistance;
 
 public class ClusterImplTest {
 	public static Dataset dataset;
@@ -174,7 +174,7 @@ public class ClusterImplTest {
 				Graph<Integer, DefaultEdge> graph = GraphUtil.buildGraph(slice.getValue(), outgoingNeighborsMap,
 						incomingNeighborsMap);
 				System.out.println("Graph Nodes Num ************" + graph.vertexSet().size());
-				int[] centroidNodesList = CentroidSelection.getCentroidNodes(graph, entityVectors, 5, 1);
+				int[] centroidNodesList = CentroidSelectionBigDecimal.getCentroidNodes(graph, entityVectors, 5, 1);
 				HashMap<Integer, HashSet<Integer>> nodesSliceNeighbor = SliceDataBuild.getSliceNodesNeighor(slice.getValue(), outgoingNeighborsMap);
 				HashMap<Integer, int[]> nodeLabelMap = labelPropagation(centroidNodesList, 
 						nodesSliceNeighbor);
@@ -205,7 +205,7 @@ public class ClusterImplTest {
 				.getNodeOutgoingNeighbors(dataset.getDatasetDirectory());
 		Graph<Integer, DefaultEdge> graph = GraphUtil.buildGraph(dataset.getDatasetDirectory());
 		entityVectors = RescalDistance.getNodeVector(datasetEmbedingPath);
-		int[] centroidList = CentroidSelection.getCentroidNodes(graph, entityVectors, 5, 1);
+		int[] centroidList = CentroidSelectionBigDecimal.getCentroidNodes(graph, entityVectors, 5, 1);
 		// 每个顶点以及其所属标签以及标签是由谁传播过来的信息的map
 		HashMap<Integer, int[]> labelMap = labelPropagation(centroidList, outgoingNeighborsMap);
 		HashMap<Integer, ArrayList<Integer>> clusters = new HashMap<>();

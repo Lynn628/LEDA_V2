@@ -1,17 +1,22 @@
 package com.seu.ldea.time;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
+import org.omg.PortableServer.ServantActivator;
 
 import com.seu.ldea.entity.Dataset;
 import com.seu.ldea.entity.ResourceInfo;
@@ -107,6 +112,7 @@ public class TimeExtractionToolEstimation {
 					for (CoreMap cm : subTimeList) {
 						// labelResource(currentRId, -1, cm);
 						String time2 = cm.get(TimeExpression.Annotation.class).getTemporal().toString();
+						
 						//LabelResourceWithTimeTest.labelResource(subId, "createdDate", time);
 						bufferedWriter.write("subStr---" + time2);
 						bufferedWriter.newLine();
@@ -136,7 +142,7 @@ public class TimeExtractionToolEstimation {
 				// 当Object为字符串
 			    List<CoreMap> list = SUTimeExtraction.SUTimeJudgeFunc(pipeline, objStr);
 				if (!list.isEmpty()) {				
-					String time = LabelResourceWithTimeTest.getTimeInLiteral(list, objStr);
+					String time = getTimeInLiteral(list, objStr);
 				      if(!time.equals("")){
 						//LabelResourceWithTimeTest.labelResource(subId, preStr, time);
 				    	  bufferedWriter.write("objStr2---" + time);
@@ -154,12 +160,43 @@ public class TimeExtractionToolEstimation {
 		// System.out.println("Statement Number: " + lineNum);
 	}
 
+	
+	/**
+	 * 判断时间信息所占的比重,返回占比最大的时间信息的标准表示形式
+	 * 
+	 * @param uri
+	 * @return
+	 */
+	public static String getTimeInLiteral(List<CoreMap> list, String uri) {
+		    double maxPercentage = 0;
+		    String timeInfo = "";
+		    String result = "";
+			// 将识别出来的时间信息与当前谓语以<p, timeSpan>与资源绑定
+			for (CoreMap cm : list) {
+				double percentage = cm.toString().length()/(uri.length()*1.0);
+				if(maxPercentage < percentage){
+					maxPercentage = percentage;
+					timeInfo = cm.get(TimeExpression.Annotation.class).getTemporal().toString();
+				}
+			}
+			//设置阈值为0.5
+			if(maxPercentage > 0.5){
+				result = timeInfo;
+			}else if(uri.contains("http://www.w3.org/2001/XMLSchema#date")){
+				result = timeInfo;
+			}
+			System.out.println("%----- " + maxPercentage);
+			return result;
+               
+	}
+
+	
 	public static void main(String[] args) throws IOException {
 		// 读取目录路径
 		long t1 = System.currentTimeMillis();
-		Dataset dataset = new Dataset("jdbc:virtuoso://localhost:1111", "http://LDEA/SWCC.org", "dba", "dba");
-		timeExtraction(dataset, "SWCCTimeExtractionEstimation4",
-				"C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\SWCC2");
+		Dataset dataset = new Dataset("jdbc:virtuoso://localhost:1111", "http://LDEA/Jamendo.org", "dba", "dba");
+		timeExtraction(dataset, "JamendoTimExtractionEstimation",
+				"C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\Jamendo");
 		long t2 = System.currentTimeMillis();
 			double timeCost = (t2 - t1) / 1000.0;
 			System.out.println("End of main~~~~~~time cost " + timeCost + "s");

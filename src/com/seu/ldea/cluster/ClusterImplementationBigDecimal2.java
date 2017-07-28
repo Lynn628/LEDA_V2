@@ -1,6 +1,7 @@
 package com.seu.ldea.cluster;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,19 +21,15 @@ import com.seu.ldea.entity.Dataset;
 import com.seu.ldea.history.SliceDataBuild;
 import com.seu.ldea.segment.DatasetSegmentation2;
 import com.seu.ldea.segment.SliceDataBuild2;
+import com.seu.ldea.tau.RescalDistance;
 
-//距离计算的点是规范化后的，不是bigdecimal
-/**
- * 
- * @author Lynn
- *
- */
-public class ClusterImplementation {
+public class ClusterImplementationBigDecimal2 {
 	public static Dataset dataset;
 	// 每个entity的向量表示
-	public static ArrayList<Double[]> entityVectors;
+	public static ArrayList<BigDecimal[]> entityVectors;
 
 	/**
+	 * 把离群点也加入到集合中 ，打上簇标签
 	 * 
 	 * @param centroidList,质心点集合
 	 * @param sliceNodes,这张切片上的所有点
@@ -105,14 +102,14 @@ public class ClusterImplementation {
 						continue;
 					else {
 						// 比较当前被着色点A的颜色，判断之前传播给A的点和当前传播过来的点和A之间的相似度比较
-						Double aDouble = RescalDistanceForCluster.calcVectorDistance(entityVectors, "Cosine-2",
+						BigDecimal aBigDecimal = RescalDistance.calcVectorDistance(entityVectors, "Cosine-2",
 								tempNeighbor, labelMap.get(tempNeighbor)[1]);
-						Double bDouble = RescalDistanceForCluster.calcVectorDistance(entityVectors, "Cosine-2",
+						BigDecimal bBigDecimal = RescalDistance.calcVectorDistance(entityVectors, "Cosine-2",
 								tempNeighbor, current);
-						int result = aDouble.compareTo(bDouble);
+						int result = aBigDecimal.compareTo(bBigDecimal);
 						if (result == 0) {
 							continue;
-						} else if (result < 0) {
+						} else if (result == -1) {
 							// 当前传播过来的点和A的相似度大
 							labelMap.get(tempNeighbor)[0] = labelMap.get(current)[0];
 							labelMap.get(tempNeighbor)[1] = current;
@@ -149,10 +146,10 @@ public class ClusterImplementation {
 
 		for (Entry<Integer, int[]> isolatedNode : isolatedNodesLabelSet.entrySet()) {
 			int clusterBelongedTo = 0;
-			Double maxDistance = new Double(0);
+			BigDecimal maxDistance = new BigDecimal(0);
 			// 在centroid中找相似度最大的作为标签
 			for (int i = 0; i < centroidList.length; i++) {
-				Double distance = RescalDistanceForCluster.calcVectorDistance(entityVectors, "Cosine-2",
+				BigDecimal distance = RescalDistance.calcVectorDistance(entityVectors, "Cosine-2",
 						isolatedNode.getKey(), centroidList[i]);
 				if (distance.compareTo(maxDistance) > 0)
 					maxDistance = distance;
@@ -219,10 +216,10 @@ public class ClusterImplementation {
 	 * @throws IOException
 	 */
 	public static LinkedHashMap<Integer, HashMap<Integer, HashSet<Integer>>> getSliceClusterMap(
-			LinkedHashMap<Integer, HashSet<Integer>> sliceNodes, ArrayList<Double[]> entityVectors,
+			LinkedHashMap<Integer, HashSet<Integer>> sliceNodes, ArrayList<BigDecimal[]> entityVectors,
 			HashMap<Integer, HashSet<Integer>> outgoingNeighborsMap,
-			HashMap<Integer, HashSet<Integer>> incomingNeighborsMap
-		) throws IOException {
+			HashMap<Integer, HashSet<Integer>> incomingNeighborsMap,
+			HashMap<Integer, HashSet<Integer>> nodeNeighborsMap) throws IOException {
 
 		LinkedHashMap<Integer, HashMap<Integer, HashSet<Integer>>> result = new LinkedHashMap<>();
 		for (Entry<Integer, HashSet<Integer>> slice : sliceNodes.entrySet()) {
@@ -234,21 +231,22 @@ public class ClusterImplementation {
 						+ slice.getValue().size());
 				// 如果能构建图，才能算pagerank，才能选质心才能聚类
 				if (graph.vertexSet().size() > 0) {
-					int[] centroidNodesList = CentroidSelection.getCentroidNodes(graph, entityVectors, 5, 1);
-					 HashMap<Integer, HashSet<Integer>> nodesSliceNeighbor =
-					 SliceDataBuild.getSliceNodesNeighor(slice.getValue(), incomingNeighborsMap);
-				/*	HashMap<Integer, HashSet<Integer>> nodesSliceNeighbor = SliceDataBuild
+					int[] centroidNodesList = CentroidSelectionBigDecimal.getCentroidNodes(graph, entityVectors, 5, 1);
+					// HashMap<Integer, HashSet<Integer>> nodesSliceNeighbor =
+					// SliceDataBuild.getSliceNodesNeighor(slice.getValue(),
+					// incomingNeighborsMap);
+					HashMap<Integer, HashSet<Integer>> nodesSliceNeighbor = SliceDataBuild
 							.getSliceNodesNeighor(slice.getValue(), nodeNeighborsMap);
-*/
+
 					HashMap<Integer, int[]> nodeLabelMap = labelPropagation(centroidNodesList, nodesSliceNeighbor,
 							slice.getValue());
 					HashMap<Integer, HashSet<Integer>> clusters = allocateNodestoCluster(nodeLabelMap,
 							outgoingNeighborsMap, incomingNeighborsMap);
 					System.out.println(
-							"Slice id: " + slice.getKey() + " slice size: " + slice.getValue().size() + " ");
-					System.out.println("Labeled nodes amount ********  " + nodeLabelMap.size());
-					System.out.println("Graph Nodes amount *********" + graph.vertexSet().size());
-					System.out.println("Slice clusters number ---  " + clusters.size());
+							"Slice id ******* " + slice.getKey() + " slice size " + slice.getValue().size() + " ");
+					System.out.println(" Labeled nodes amount ********  " + nodeLabelMap.size());
+					System.out.println("Graph Nodes Num *********" + graph.vertexSet().size());
+					System.out.println("Slice clusters number *******  " + clusters.size());
 					result.put(slice.getKey(), clusters);
 				}else {
 					System.out.println("No connected nodes on slice ");
@@ -263,8 +261,7 @@ public class ClusterImplementation {
 
 	public static void main(String[] args) throws IOException, ParseException {
 		long t1 = System.currentTimeMillis();
-		//String embeddingFilePath = "D:\\RESCAL\\Ext-RESCAL-master\\Ext-RESCAL-master\\Jamendo-latent10-lambda0.embeddings.txt";
-		String normalizedEmbeddingFilePath = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\NormalizedEmbeddingFile\\NormalizedDBLP-latent10.txt";
+		String embeddingFilePath = "D:\\RESCAL\\Ext-RESCAL-master\\Ext-RESCAL-master\\Jamendo-latent10-lambda0.embeddings.txt";
 		String path = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\TimeExtractionResultFile\\Jamendo-ResourcePTMap0724.txt";
 		String path2 = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\TimeExtractionResultFile\\Jamendo-ClassPTMap-0724.txt";
 		String rescalInputDir = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\Jamendo";
@@ -288,10 +285,10 @@ public class ClusterImplementation {
 				.getNodeOutgoingNeighbors(rescalInputDir);
 
 		/** 每个时间片上的点进行聚类操作 **/
-		ArrayList<Double[]> entityVectors = RescalDistanceForCluster.getNodeVector(normalizedEmbeddingFilePath);
-		ClusterImplementation.entityVectors = entityVectors;
+		ArrayList<BigDecimal[]> entityVectors = RescalDistance.getNodeVector(embeddingFilePath);
+		ClusterImplementationBigDecimal.entityVectors = entityVectors;
 		// 时间片以及每个时间片上的簇的点
-		LinkedHashMap<Integer, HashMap<Integer, HashSet<Integer>>> sliceClusterNodes = ClusterImplementation
+		LinkedHashMap<Integer, HashMap<Integer, HashSet<Integer>>> sliceClusterNodes = ClusterImplementationBigDecimal
 				.getSliceClusterMap(sliceNodes, entityVectors, resourceOutgoingNeighborMap,
 						resourceIncomingNeighborMap);
 

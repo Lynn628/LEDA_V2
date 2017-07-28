@@ -18,6 +18,7 @@ import com.seu.ldea.entity.TimeSpan;
 import com.seu.ldea.util.BuildFromFile;
 import com.seu.ldea.util.TimeUtil;
 
+
 public class LabelClassWithTime2 {
 	// 每个资源的id以及携带的时间信息
 		public HashMap<Integer, ResourceInfo> resourceTimeInfo = new HashMap<>();
@@ -51,6 +52,9 @@ public class LabelClassWithTime2 {
 			FileReader fileReader = new FileReader(wordsFile);
 			BufferedReader bufferedReader = new BufferedReader(fileReader);
 			String line = "";
+			//获取本数据集的所有类
+			HashMap<Integer, String> resourceURI = ResourceInfo.getReourceURIMap(dir);
+			HashMap<Integer, String> datasetAllClass = new HashMap<>();
 			// type的uri编号
 			int num = 0;
 			while ((line = bufferedReader.readLine()) != null) {
@@ -85,6 +89,8 @@ public class LabelClassWithTime2 {
 				System.out.println("entity id is " + bArr2[i] + " class id is " + bArr1[i]);
 				int entityId = Integer.parseInt(bArr2[i]);
 				int classId = Integer.parseInt(bArr1[i]);
+				//收集本数据集的类
+				datasetAllClass.put(classId, resourceURI.get(classId));
 				// 在贴有时间标签的Entity set中查找是否有此entity id的时间标签
 				ResourceInfo resourceInfo = resourceTimeInfo.get(entityId);
 				if (classTimeInfo.containsKey(classId)) {
@@ -120,7 +126,18 @@ public class LabelClassWithTime2 {
 			}
 		
 		//getClassTimeSpanInfo(classTimeInfo , resultFileName);
-		
+			//写类
+			String dstFile = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\TimeExtractionResultFile\\classURI.txt";
+			FileWriter fileWriter = new FileWriter(dstFile);
+			BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+			for (Entry<Integer, String> entry : datasetAllClass.entrySet()) {
+				bufferedWriter.write(entry.getKey() + " ");
+				String uri = entry.getValue();
+				bufferedWriter.write(uri);
+				bufferedWriter.newLine();
+				bufferedWriter.flush();
+			}
+			bufferedWriter.close();
 		/*String dstFile = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\TimeExtractionResultFile\\SWCC-class-time-set.txt";
 			FileWriter fileWriter = new FileWriter(dstFile);
 			BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
@@ -220,7 +237,7 @@ public class LabelClassWithTime2 {
 			return classPTMap;
 		}
 		
-
+       
 		public static void main(String[] args) throws IOException, ParseException {
 			long t1 = System.currentTimeMillis();
 		/*	Dataset dataset = new Dataset("jdbc:virtuoso://localhost:1111", "http://LDEA/SWCC.org", "dba", "dba");

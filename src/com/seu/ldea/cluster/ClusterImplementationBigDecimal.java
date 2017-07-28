@@ -10,9 +10,9 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultEdge;
@@ -21,8 +21,13 @@ import com.seu.ldea.entity.Dataset;
 import com.seu.ldea.history.SliceDataBuild;
 import com.seu.ldea.segment.DatasetSegmentation2;
 import com.seu.ldea.segment.SliceDataBuild2;
-
-public class ClusterImplementation2 {
+import com.seu.ldea.tau.RescalDistance;
+/**
+ * 将离群点加入簇中
+ * @author Lynn
+ *
+ */
+public class ClusterImplementationBigDecimal {
 	public static Dataset dataset;
 	// 每个entity的向量表示
 	public static ArrayList<BigDecimal[]> entityVectors;
@@ -169,10 +174,10 @@ public class ClusterImplementation2 {
 		HashMap<Integer, HashSet<Integer>> result = new HashMap<>();
 		for (Entry<Integer, int[]> node : labelMap.entrySet()) {
 			int clusterId = node.getValue()[0];
-		   System.out.println(node.getKey() + " ---* " + " outgoing number " + outgoingNeighborsMap.get(node.getKey()).size() + 
+		 /*  System.out.println(node.getKey() + " ---* " + " outgoing number " + outgoingNeighborsMap.get(node.getKey()).size() + 
 				   " incoming number " + incomingNeighborsMap.get(node.getKey()).size() + 
 				   " clusterId "+  clusterId + " ----* " + " outgoing number " + outgoingNeighborsMap.get(clusterId).size() + 
-				   " incoming number " + incomingNeighborsMap.get(clusterId).size());
+				   " incoming number " + incomingNeighborsMap.get(clusterId).size());*/
 			//System.out.println("nodeId is " + node.getKey() + "  node cluster id is " + clusterId);
 			if (!result.containsKey(clusterId)) {
 				HashSet<Integer> clusterNodesSet = new HashSet<>();
@@ -203,8 +208,7 @@ public class ClusterImplementation2 {
 	public static LinkedHashMap<Integer, HashMap<Integer, HashSet<Integer>>> getSliceClusterMap(
 			LinkedHashMap<Integer, HashSet<Integer>> sliceNodes, ArrayList<BigDecimal[]> entityVectors,
 			HashMap<Integer, HashSet<Integer>> outgoingNeighborsMap,
-			HashMap<Integer, HashSet<Integer>> incomingNeighborsMap,
-			HashMap<Integer, HashSet<Integer>> nodeNeighborsMap ) throws IOException {
+			HashMap<Integer, HashSet<Integer>> incomingNeighborsMap) throws IOException {
 
 		LinkedHashMap<Integer, HashMap<Integer, HashSet<Integer>>> result = new LinkedHashMap<>();
 		for (Entry<Integer, HashSet<Integer>> slice : sliceNodes.entrySet()) {
@@ -212,10 +216,11 @@ public class ClusterImplementation2 {
 			if (slice.getValue().size() != 0) {
 				Graph<Integer, DefaultEdge> graph = GraphUtil.buildGraph(slice.getValue(), outgoingNeighborsMap,
 						incomingNeighborsMap);
-				int[] centroidNodesList = CentroidSelection.getCentroidNodes(graph, entityVectors, 5, 1);
-				//HashMap<Integer, HashSet<Integer>> nodesSliceNeighbor = SliceDataBuild.getSliceNodesNeighor(slice.getValue(), incomingNeighborsMap);
-				HashMap<Integer, HashSet<Integer>> nodesSliceNeighbor = SliceDataBuild.getSliceNodesNeighor(slice.getValue(), nodeNeighborsMap);
-			
+				int[] centroidNodesList = CentroidSelectionBigDecimal.getCentroidNodes(graph, entityVectors, 5, 1);
+				HashMap<Integer, HashSet<Integer>> nodesSliceNeighbor = SliceDataBuild.getSliceNodesNeighor(slice.getValue(), incomingNeighborsMap);
+				/*HashMap<Integer, int[]> nodeLabelMap = labelPropagation(centroidNodesList,
+						nodesSliceNeighbor, slice.getValue());
+				System.out.println("__________nodesliceneighbor " + nodesSliceNeighbor.size() + "______outgoing neighbor " + outgoingNeighborsMap.size());*/
 				HashMap<Integer, int[]> nodeLabelMap = labelPropagation(centroidNodesList,
 						nodesSliceNeighbor, slice.getValue());
 				HashMap<Integer, HashSet<Integer>> clusters = allocateNodestoCluster(nodeLabelMap,outgoingNeighborsMap, incomingNeighborsMap );
@@ -257,9 +262,9 @@ public class ClusterImplementation2 {
        
 		/** 每个时间片上的点进行聚类操作 **/
         ArrayList<BigDecimal[]> entityVectors = RescalDistance.getNodeVector(embeddingFilePath);
- 		ClusterImplementation.entityVectors = entityVectors;
+ 		ClusterImplementationBigDecimal.entityVectors = entityVectors;
 		// 时间片以及每个时间片上的簇的点
-		LinkedHashMap<Integer, HashMap<Integer, HashSet<Integer>>> sliceClusterNodes = ClusterImplementation
+		LinkedHashMap<Integer, HashMap<Integer, HashSet<Integer>>> sliceClusterNodes = ClusterImplementationBigDecimal
 				.getSliceClusterMap(sliceNodes, entityVectors, resourceOutgoingNeighborMap,
 						resourceIncomingNeighborMap);
 		

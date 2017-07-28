@@ -1,4 +1,4 @@
-package com.seu.ldea.history;
+package com.seu.ldea.cluster;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -6,74 +6,91 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Map.Entry;
+import java.util.HashMap;
 import java.util.Scanner;
+import java.util.Map.Entry;
 
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultEdge;
 
-import com.seu.ldea.cluster.GraphUtil;
-import com.seu.ldea.cluster.DegreeCalculation;
 import com.seu.ldea.entity.Dataset;
-import com.seu.ldea.tau.TauRescalDistanceBigDecimal;
+import com.seu.ldea.history.RescalDistanceTest;
+import com.seu.ldea.tau.RescalDistance;
 
-/**
- * 要实现聚类需要提供的函数： 1.获取每个节点的邻接顶点信息 2.提供方法计算图中顶点的中心度，并排序
- * 3.获取图中每个顶点张量分解后的值,计算向量之间的距离,可以通过RescalDistance.java中的函数获得
- * 4.从候选质心中确定最终的质心，利用张量分解实体的排序结果(调用RescalDistance.java)，选取候选质心中离质心集合中所有点都远的点确定为质心
- * 5.标签传播时，需要生成虚拟文档，当出现冲突时利用文本相似性进行排除(冲突排除可否用向量的相似性进行替代,省去虚拟文档的生成) 6.评估聚类结果的好坏
- * 6/21/2017
- * 
- * @author Lynn
- *
- */
-public class CentroidUtil {
-	
+public class CentroidSelectionBigDecimal {
 	public static Graph<Integer, DefaultEdge> graph;
 	public static ArrayList<Entry<Integer, Double>> sortedList;
 	// 记录输出日志
 	public static FileWriter fileWriter;
 	public static BufferedWriter bufferedWriter;
-	
+
 	/**
 	 * 依据k值以及中心度计算方法，获取候选质心集合
-	 * @param num = k * 10
-	 * @param type, 以什么计算方法选质心，pagerank...
+	 * 
+	 * @param num
+	 *            = k * 10
+	 * @param type,
+	 *            以什么计算方法选质心，pagerank...
 	 * @return
 	 * @throws IOException
 	 */
 	public static int[] getCandidateNodes(int num, int type) throws IOException {
 		System.out.println("Candidate nodes set size is " + num);
-		/*bufferedWriter.write("Candidate nodes set size is--> " + num);
-		bufferedWriter.newLine();*/
+		/*
+		 * bufferedWriter.write("Candidate nodes set size is--> " + num);
+		 * bufferedWriter.newLine();
+		 */
 		// bufferedWriter.close();
 		int[] candidateNodes = new int[num];
 		// 1 表示PageRank
 		if (type == 1) {
+			int j = 0;
 			// 后期查询数据库，现阶段保存在内存
 			for (int i = 0; i < num; i++) {
-				candidateNodes[i] = DegreeCalculation.getSortedDegree(graph, type).get(i).getKey();
-			/*	bufferedWriter.write("cadidate nodes " + i + " is--> " + candidateNodes[i]);
-				bufferedWriter.newLine();*/
+				candidateNodes[i]  = DegreeCalculation.getSortedDegree(graph, type).get(i).getKey();
+				/*
+				 * bufferedWriter.write("cadidate nodes " + i + " is--> " +
+				 * candidateNodes[i]); bufferedWriter.newLine();
+				 */
 			}
 		}
 		return candidateNodes;
 
 	}
-	
+
 	/**
 	 * 选取最终生成簇的中心点， 中心度高，且相互之间距离较远,候选点与中心点集合中的点的距离都远
 	 * 
-	 * @param graph
+	 * @param ingraph
 	 * @param k
 	 * @param vectorDistance
+	 * @param type,pagerank...
 	 * @return
 	 * @throws IOException
 	 */
-	public static int[] getCentroidNodes(Graph<Integer, DefaultEdge> ingraph, int k, BigDecimal[][] vectorDistance, int type)
-			throws IOException {
-		graph = ingraph; 
-		int[] candidateNodes = getCandidateNodes(k * 10, type);
+	public static int[] getCentroidNodes(Graph<Integer, DefaultEdge> ingraph, ArrayList<BigDecimal[]> entityVectors,
+			int k, int type) throws IOException {
+		graph = ingraph;
+		int candidateNum = k * 10;
+		int[] candidateNodes;
+		if(candidateNum <= ingraph.vertexSet().size()){
+		candidateNodes = getCandidateNodes(k * 10, type);
+		}else {
+		candidateNodes = getCandidateNodes(ingraph.vertexSet().size(), type);	
+		}
+		//HashMap<Integer, String> datasetClass = Dataset.getDataSetClass("C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\Jamendo", "JamendoClassIndex");
+		//ArrayList<Integer> candidateArr = new ArrayList<>();
+		/*//清洗candidateNodes里面不包含class类别的点
+		for(int i = 0; i < candidateNodes1.length; i++){
+			if(!datasetClass.containsKey(candidateNodes1[i])){
+				candidateArr.add(candidateNodes1[i]);
+			}
+		}
+		int[] candidateNodes = new int[candidateArr.size()];
+		for(Integer i = 0; i < candidateArr.size(); i++){
+			candidateNodes[i] = candidateArr.get(i);
+		}
+		*/
 		int[] centroidNodes = new int[k];
 		// 中心点初始化
 		for (int i = 0; i < k; i++)
@@ -82,18 +99,17 @@ public class CentroidUtil {
 		// 将中心度最大的点加入质心集合，并以其作为初始点
 		centroidNodes[0] = candidateNodes[0];
 		System.out.println("first centroid node is " + candidateNodes[0]);
-		/*bufferedWriter.newLine();
-		bufferedWriter.write("first centroid node is---> " + candidateNodes[0]);
-		bufferedWriter.newLine();*/
+
 		candidateNodes[0] = -1;
 		int selectedId = -1;
 		// 用于表示短距离
 		int stopFlag = 1;
 		// 经历K-1次质心选取过程
 		while (stopFlag < k) {
-			BigDecimal globalMinimal = new BigDecimal(BigInteger.TEN);
+			BigDecimal globalMinimal = new BigDecimal(10000000000000000000.0);
 			for (int i = 1; i < candidateNodes.length; i++) {
-				BigDecimal localMinimal = new BigDecimal(BigInteger.TEN);
+				BigDecimal localMinimal = new BigDecimal(10000000000000000000.0);
+				// 已被选入质心的点不会出现在candidate中
 				if (candidateNodes[i] != -1) {
 					// System.out.println("CandidcateNodes[i] is in this round
 					// ***** " + candidateNodes[i]);
@@ -101,14 +117,18 @@ public class CentroidUtil {
 						// 已选入质心集合的顶点
 						if (centroidNodes[j] != -1) {
 							// 判断当前顶点与质心之间的距离
-							BigDecimal distance = vectorDistance[candidateNodes[i]][centroidNodes[j]];
+							BigDecimal distance = RescalDistance.calcVectorDistance(entityVectors, "Cosine-2",
+									candidateNodes[i], centroidNodes[j]);
+							
+                             // System.out.println("distance****" + distance );
 							// 选取局部最小的距离
 							if (distance.compareTo(localMinimal) < 0) {
 								localMinimal = distance;
+								//System.out.println("distance****" + localMinimal );
 							}
 						}
 					}
-
+                  //  System.out.println("localMinimal " + localMinimal + " globalMinimal " + globalMinimal);
 					if (localMinimal.compareTo(globalMinimal) < 0) {
 						globalMinimal = localMinimal;
 						selectedId = i;
@@ -116,26 +136,18 @@ public class CentroidUtil {
 					}
 				}
 			}
-			System.out.println("#" + stopFlag + 1 + "centroid - candidate# " + selectedId + " Node# is "
+			System.out.println("Selected id is ======= " + selectedId);
+			System.out.println("#" + stopFlag + " centroid; # candidate set is  " + selectedId + " Real Node # is "
 					+ candidateNodes[selectedId] + " mininal distance to other centroids is " + globalMinimal);
-			//bufferedWriter.write("#" + stopFlag + 1 + "centroid - candidate# " + selectedId + " Node# is "
-					//+ candidateNodes[selectedId] + " mininal distance to other centroids is " + globalMinimal);
-			//bufferedWriter.newLine();
+
 			// 将选出的点加入质心集合中，并将其从候选质心中排除
 			centroidNodes[stopFlag] = candidateNodes[selectedId];
 			candidateNodes[selectedId] = -1;
-			// globalMinimalDistance = new BigDecimal(BigInteger.TEN);
-			/*
-			 * System.out.println("*****************");
-			 * System.out.println(centroidNodes[stopFlag] + " ** " +
-			 * candidateNodes[selectedId]);
-			 */
 			stopFlag++;
 		}
 		candidateNodes = null;
 		return centroidNodes;
 	}
-
 
 	public static void main(String[] args) throws IOException {
 		long begin = System.currentTimeMillis();
@@ -152,26 +164,24 @@ public class CentroidUtil {
 		scanner.close();
 		Dataset dataset = new Dataset(directoryPath, embedingPath);
 		graph = GraphUtil.buildGraph(dataset.getDatasetEmbedingPath());
-		//sortedRank(calcPageRank(graph));
-		BigDecimal[][] vectorDistance = TauRescalDistanceBigDecimal.getVectorDistanceMatrix(dataset.getDatasetEmbedingPath(), method);
-		int size = vectorDistance.length;
+		// sortedRank(calcPageRank(graph));
+		HashMap<Integer, HashMap<Integer, BigDecimal>> vectorDistance = RescalDistanceTest
+				.calcVectorDistance(dataset.getDatasetEmbedingPath(), method);
+		int size = vectorDistance.size();
 		// System.out.println("matrix size is ++++++++++++++++" + size);
 		for (int i = 0; i < size; i++) {
 			bufferedWriter.write(i + " : ");
 			for (int j = 0; j < size; j++) {
-				System.out.print(i + "-" + j + " : " + vectorDistance[i][j] + " ");
-				bufferedWriter.write(i + "-" + j + " : " + vectorDistance[i][j].toString() + " ");
+				System.out.print(i + "-" + j + " : " + vectorDistance.get(i).get(j) + " ");
+				bufferedWriter.write(i + "-" + j + " : " + vectorDistance.get(i).get(j).toString() + " ");
 			}
 			bufferedWriter.newLine();
 
 		}
-		getCentroidNodes(graph, 5, vectorDistance, 1);
+		ArrayList<BigDecimal[]> entityVectors = RescalDistance.getNodeVector(embedingPath);
+		getCentroidNodes(graph,entityVectors, 5, 1);
 		bufferedWriter.close();
 		long end = System.currentTimeMillis();
 		System.out.println("Time cost -----> " + (end - begin) / 1000 + " s");
 	}
-
-	// C:\Users\Lynn\Desktop\Academic\LinkedDataProject\rescalInput\icpw-2009-complete
-	// D:\RESCAL\Ext-RESCAL-master\Ext-RESCAL-master\icpw2009complete-latent10-lambda0.embeddings.txt
-	// Cosine-square Cosine-1
-}// Euclidean
+}
