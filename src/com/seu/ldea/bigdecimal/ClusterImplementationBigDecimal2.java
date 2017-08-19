@@ -1,6 +1,7 @@
-package com.seu.ldea.cluster;
+package com.seu.ldea.bigdecimal;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,23 +17,20 @@ import java.util.Set;
 import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultEdge;
 
+import com.seu.ldea.cluster.GraphUtil;
 import com.seu.ldea.entity.Dataset;
 import com.seu.ldea.history.SliceDataBuild;
 import com.seu.ldea.history.SliceDataBuildOldVersion2;
 import com.seu.ldea.segment.DatasetSegmentation;
+import com.seu.ldea.tau.RescalDistance;
 
-//距离计算的点是规范化后的，不是bigdecimal
-/**
- * 
- * @author Lynn
- *
- */
-public class ClusterImplementation {
+public class ClusterImplementationBigDecimal2 {
 	public static Dataset dataset;
 	// 每个entity的向量表示
-	public static ArrayList<Double[]> entityVectors;
+	public static ArrayList<BigDecimal[]> entityVectors;
 
 	/**
+	 * 把离群点也加入到集合中 ，打上簇标签
 	 * 
 	 * @param centroidList,质心点集合
 	 * @param sliceNodes,这张切片上的所有点
@@ -44,8 +42,6 @@ public class ClusterImplementation {
 
 		HashMap<Integer, int[]> labelMap = new HashMap<Integer, int[]>();
 		Queue<Integer> nodeQueue = new LinkedList<Integer>();
-		//List<Integer> visitedNode = new ArrayList<Integer>();
-		HashSet<Integer> visitedNode = new HashSet<Integer>();
 		int[] labelArray;
 		for (int i = 0; i < centroidList.length; i++) {
 			labelArray = new int[2];
@@ -54,13 +50,13 @@ public class ClusterImplementation {
 
 			labelMap.put(centroidList[i], labelArray);
 			nodeQueue.offer(centroidList[i]);
-			visitedNode.add(centroidList[i]);
 		}
 
 		int current;
 		int tempNeighbor;
 		int[] tempArray;
 		Set<Integer> neighborSet;
+		List<Integer> visitedNode = new ArrayList<Integer>();
 
 		while (!nodeQueue.isEmpty()) {
 			// 当前点出队列
@@ -107,14 +103,14 @@ public class ClusterImplementation {
 						continue;
 					else {
 						// 比较当前被着色点A的颜色，判断之前传播给A的点和当前传播过来的点和A之间的相似度比较
-						Double aDouble = RescalDistanceForCluster.calcVectorDistance(entityVectors, "Cosine-2",
+						BigDecimal aBigDecimal = RescalDistance.calcVectorDistance(entityVectors, "Cosine-2",
 								tempNeighbor, labelMap.get(tempNeighbor)[1]);
-						Double bDouble = RescalDistanceForCluster.calcVectorDistance(entityVectors, "Cosine-2",
+						BigDecimal bBigDecimal = RescalDistance.calcVectorDistance(entityVectors, "Cosine-2",
 								tempNeighbor, current);
-						int result = aDouble.compareTo(bDouble);
+						int result = aBigDecimal.compareTo(bBigDecimal);
 						if (result == 0) {
 							continue;
-						} else if (result < 0) {
+						} else if (result == -1) {
 							// 当前传播过来的点和A的相似度大
 							labelMap.get(tempNeighbor)[0] = labelMap.get(current)[0];
 							labelMap.get(tempNeighbor)[1] = current;
@@ -128,11 +124,12 @@ public class ClusterImplementation {
 		visitedNode = null;
 		nodeQueue = null;
 
-		
-		 /* HashMap<Integer, int[]> isolatedNodesLabel = getIsolatedNodeCluster(sliceTotalNodes, labelMap, centroidList);
-		  for(Entry<Integer, int[]> nodeLabel : isolatedNodesLabel.entrySet()){
-		  labelMap.put(nodeLabel.getKey(), nodeLabel.getValue()); }
-		 System.out.println("~~~~~~~~~~~Isolated node size " + isolatedNodesLabel.size());*/
+		/*
+		 * HashMap<Integer, int[]> isolatedNodesLabel =
+		 * getIsolatedNodeCluster(sliceTotalNodes, labelMap, centroidList);
+		 * for(Entry<Integer, int[]> nodeLabel : isolatedNodesLabel.entrySet()){
+		 * labelMap.put(nodeLabel.getKey(), nodeLabel.getValue()); }
+		 */
 		return labelMap;
 
 	}
@@ -150,10 +147,10 @@ public class ClusterImplementation {
 
 		for (Entry<Integer, int[]> isolatedNode : isolatedNodesLabelSet.entrySet()) {
 			int clusterBelongedTo = 0;
-			Double maxDistance = new Double(0);
+			BigDecimal maxDistance = new BigDecimal(0);
 			// 在centroid中找相似度最大的作为标签
 			for (int i = 0; i < centroidList.length; i++) {
-				Double distance = RescalDistanceForCluster.calcVectorDistance(entityVectors, "Cosine-2",
+				BigDecimal distance = RescalDistance.calcVectorDistance(entityVectors, "Cosine-2",
 						isolatedNode.getKey(), centroidList[i]);
 				if (distance.compareTo(maxDistance) > 0)
 					maxDistance = distance;
@@ -163,7 +160,7 @@ public class ClusterImplementation {
 			// System.out.println("isolated node id-- " + isolatedNode.getKey()
 			// + " cluster label-- " + centroidList[i] + " distance " +
 			// distance);
-		//	System.out.println("isolated node id-- " + isolatedNode.getKey() + " cluster label--" + clusterBelongedTo);
+			System.out.println("isolated node id-- " + isolatedNode.getKey() + " cluster label--" + clusterBelongedTo);
 			// 将孤立点加上簇标签以及传播过来的标签
 			isolatedNode.getValue()[0] = clusterBelongedTo;
 			isolatedNode.getValue()[1] = clusterBelongedTo;
@@ -220,54 +217,37 @@ public class ClusterImplementation {
 	 * @throws IOException
 	 */
 	public static LinkedHashMap<Integer, HashMap<Integer, HashSet<Integer>>> getSliceClusterMap(
-			LinkedHashMap<Integer, HashSet<Integer>> sliceNodes, ArrayList<Double[]> entityVectors,
-			HashMap<Integer, String> classTypeId,
+			LinkedHashMap<Integer, HashSet<Integer>> sliceNodes, ArrayList<BigDecimal[]> entityVectors,
 			HashMap<Integer, HashSet<Integer>> outgoingNeighborsMap,
-			HashMap<Integer, HashSet<Integer>> incomingNeighborsMap
-		) throws IOException {
-        //创建所有点的邻居Map，包括出度入度点
-		HashMap<Integer, HashSet<Integer>> allNeighborMap = outgoingNeighborsMap;
-         for(Entry<Integer, HashSet<Integer>> node : incomingNeighborsMap.entrySet()){
-        	 Integer nodeId = node.getKey();
-        	 HashSet<Integer> nodeIncomingNeighbor = node.getValue();
-        	 if(allNeighborMap.containsKey(nodeId)){
-        		 allNeighborMap.get(nodeId).addAll(nodeIncomingNeighbor);
-        	 }else{
-        		 allNeighborMap.put(nodeId, nodeIncomingNeighbor);
-        	 }
-         }
-		
+			HashMap<Integer, HashSet<Integer>> incomingNeighborsMap,
+			HashMap<Integer, HashSet<Integer>> nodeNeighborsMap) throws IOException {
+
 		LinkedHashMap<Integer, HashMap<Integer, HashSet<Integer>>> result = new LinkedHashMap<>();
 		for (Entry<Integer, HashSet<Integer>> slice : sliceNodes.entrySet()) {
 			// 如果此时间片上有点
-			//开始选取质心
-			long t1 = System.currentTimeMillis();
 			if (slice.getValue().size() != 0) {
-				/*Graph<Integer, DefaultEdge> graph = GraphUtil.buildGraph(slice.getValue(), outgoingNeighborsMap,
-						incomingNeighborsMap);*/
-				System.out.println("Before build graph>>>>>>>>>>>>>");
-				Graph<Integer, DefaultEdge> graph = GraphUtil.buildGraph2(slice.getValue(), allNeighborMap);
-				System.out.println("Graph size **** " + graph.vertexSet().size() + "Slice nodes "
+				Graph<Integer, DefaultEdge> graph = GraphUtil.buildGraph(slice.getValue(), outgoingNeighborsMap,
+						incomingNeighborsMap);
+				System.out.println("Graph size to select centroid**** " + graph.vertexSet().size() + "Slice nodes "
 						+ slice.getValue().size());
 				// 如果能构建图，才能算pagerank，才能选质心才能聚类
 				if (graph.vertexSet().size() > 0) {
-					
-					int[] centroidNodesList = CentroidSelection.getCentroidNodes(graph, entityVectors, 5, 1,classTypeId);
-					/* HashMap<Integer, HashSet<Integer>> nodesSliceNeighbor =
-					 SliceDataBuild.getSliceNodesNeighor(slice.getValue(), incomingNeighborsMap);*/
-                     //进行标签传播不考虑方向
-					 HashMap<Integer, HashSet<Integer>> nodesSliceNeighbor =
-							 SliceDataBuild.getSliceNodesNeighor(slice.getValue(), allNeighborMap);
-					 
+					int[] centroidNodesList = CentroidSelectionBigDecimal.getCentroidNodes(graph, entityVectors, 5, 1);
+					// HashMap<Integer, HashSet<Integer>> nodesSliceNeighbor =
+					// SliceDataBuild.getSliceNodesNeighor(slice.getValue(),
+					// incomingNeighborsMap);
+					HashMap<Integer, HashSet<Integer>> nodesSliceNeighbor = SliceDataBuild
+							.getSliceNodesNeighor(slice.getValue(), nodeNeighborsMap);
+
 					HashMap<Integer, int[]> nodeLabelMap = labelPropagation(centroidNodesList, nodesSliceNeighbor,
 							slice.getValue());
 					HashMap<Integer, HashSet<Integer>> clusters = allocateNodestoCluster(nodeLabelMap,
 							outgoingNeighborsMap, incomingNeighborsMap);
 					System.out.println(
-							"Slice id: " + slice.getKey() + " slice size: " + slice.getValue().size() + " ");
-					System.out.println("Labeled nodes amount ********  " + nodeLabelMap.size());
-					System.out.println("Graph Nodes amount *********" + graph.vertexSet().size());
-					System.out.println("Slice clusters number ---  " + clusters.size());
+							"Slice id ******* " + slice.getKey() + " slice size " + slice.getValue().size() + " ");
+					System.out.println(" Labeled nodes amount ********  " + nodeLabelMap.size());
+					System.out.println("Graph Nodes Num *********" + graph.vertexSet().size());
+					System.out.println("Slice clusters number *******  " + clusters.size());
 					result.put(slice.getKey(), clusters);
 				}else {
 					System.out.println("No connected nodes on slice ");
@@ -275,14 +255,14 @@ public class ClusterImplementation {
 			} else {
 				result.put(slice.getKey(), null);
 			}
+
 		}
 		return result;
 	}
 
 	public static void main(String[] args) throws IOException, ParseException {
 		long t1 = System.currentTimeMillis();
-		//String embeddingFilePath = "D:\\RESCAL\\Ext-RESCAL-master\\Ext-RESCAL-master\\Jamendo-latent10-lambda0.embeddings.txt";
-		String normalizedEmbeddingFilePath = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\NormalizedEmbeddingFile\\NormalizedDBLP-latent10.txt";
+		String embeddingFilePath = "D:\\RESCAL\\Ext-RESCAL-master\\Ext-RESCAL-master\\Jamendo-latent10-lambda0.embeddings.txt";
 		String path = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\TimeExtractionResultFile\\Jamendo-ResourcePTMap0724.txt";
 		String path2 = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\TimeExtractionResultFile\\Jamendo-ClassPTMap-0724.txt";
 		String rescalInputDir = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\Jamendo";
@@ -292,7 +272,7 @@ public class ClusterImplementation {
 				.segmentDataSet(161771, "http://purl.org/dc/elements/1.1/date");
 
 		LinkedHashMap<Integer, HashSet<Integer>> sliceNodes = SliceDataBuildOldVersion2
-				.initSliceDataBuild(timeEntitySlices, rescalInputDir).getSliceLinkedNodes(rescalInputDir, 129827, 161771);
+				.initSliceDataBuild(timeEntitySlices, rescalInputDir).getSliceLinkedNodes(rescalInputDir, -1, 161771);
 		/*
 		 * for(Entry<Integer, HashSet<Integer>> entry : sliceNodes.entrySet()){
 		 * System.out.println(" Slice # " + entry.getKey() + " size " +
@@ -306,12 +286,11 @@ public class ClusterImplementation {
 				.getNodeOutgoingNeighbors(rescalInputDir);
 
 		/** 每个时间片上的点进行聚类操作 **/
-		ArrayList<Double[]> entityVectors = RescalDistanceForCluster.getNodeVector(normalizedEmbeddingFilePath);
-		ClusterImplementation.entityVectors = entityVectors;
-		HashMap<Integer, String> classTypeId = Dataset.getDataSetClass(rescalInputDir, "");
+		ArrayList<BigDecimal[]> entityVectors = RescalDistance.getNodeVector(embeddingFilePath);
+		ClusterImplementationBigDecimal.entityVectors = entityVectors;
 		// 时间片以及每个时间片上的簇的点
-		LinkedHashMap<Integer, HashMap<Integer, HashSet<Integer>>> sliceClusterNodes = ClusterImplementation
-				.getSliceClusterMap(sliceNodes, entityVectors, classTypeId, resourceOutgoingNeighborMap,
+		LinkedHashMap<Integer, HashMap<Integer, HashSet<Integer>>> sliceClusterNodes = ClusterImplementationBigDecimal
+				.getSliceClusterMap(sliceNodes, entityVectors, resourceOutgoingNeighborMap,
 						resourceIncomingNeighborMap);
 
 		System.out.println("--------Test----------");

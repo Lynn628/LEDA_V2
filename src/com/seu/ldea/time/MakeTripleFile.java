@@ -12,7 +12,7 @@ import java.util.Scanner;
 
 import org.apache.jena.sparql.function.library.now;
 
-import com.seu.ldea.util.URIUtil;
+import com.seu.ldea.timeutil.URIUtil;
 
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreAnnotations.TextAnnotation;
@@ -133,8 +133,3 @@ public class MakeTripleFile {
 		bufferedReader.close();
 	}
 }
-//C:\Users\Lynn\Desktop\Academic\LinkedDataProject\DataSet\BTChallenge2014\data0.nq
-//C:\Users\Lynn\Desktop\Academic\LinkedDataProject\TimeExtractionResultFile\timetoolEstimation\test.txt
-//C:\Users\Lynn\Desktop\Academic\LinkedDataProject\TimeExtractionResultFile\timetoolEstimation\BTC-test-data.txt
-//C:\Users\Lynn\Desktop\Academic\LinkedDataProject\TimeExtractionResultFile\timetoolEstimation\eswc-20140-2
-//C:\Users\Lynn\Desktop\Academic\LinkedDataProject\DataSet\SWCC\eswc-2014-complete.rdf

@@ -1,5 +1,7 @@
 package com.seu.ldea.cluster;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,10 +24,10 @@ public class DegreeCalculation {
 	 */
 	public static Map<Integer, Double> calcPageRank(Graph<Integer, DefaultEdge> graph) {
 		PageRank<Integer, DefaultEdge> pageRank = new PageRank<>(graph);
-		for (Entry<Integer, Double> item : pageRank.getScores().entrySet()) {
+		/*for (Entry<Integer, Double> item : pageRank.getScores().entrySet()) {
 			// System.out.println("vertex " + item.getKey() + "---> " + "score "
 			// + item.getValue());
-		}
+		}*/
 		return pageRank.getScores();
 	}
 
@@ -45,23 +47,30 @@ public class DegreeCalculation {
 				return o2.getValue().compareTo(o1.getValue());
 			}
 		});
-		/*
-		 * System.out.
-		 * println("********************Page rank **********************"); for
-		 * (Entry<Integer, Double> item : entryList) {
-		 * System.out.println("vertex " + item.getKey() + "---> " +
-		 * item.getValue()); //bufferedWriter.write("vertex " + item.getKey() +
-		 * "---> " + item.getValue()); //bufferedWriter.newLine(); }
-		 */
+		FileWriter fileWriter = new FileWriter("E:\\SliceNode\\sortedPagerank.txt");
+		BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+		
+		System.out.println("********************Page rank **********************"); 
+		 for(Entry<Integer, Double> item : entryList) {
+		//  System.out.println("vertex " + item.getKey() + "---> " +item.getValue());
+		  bufferedWriter.write("vertex " + item.getKey() + " " + item.getValue()); 
+		  bufferedWriter.newLine(); 
+		  }
+		 bufferedWriter.close();
 		return entryList;
 	}
 
 	public static ArrayList<Entry<Integer, Double>> getSortedDegree(Graph<Integer, DefaultEdge> ingraph, int type)
 			throws IOException {
+		long t1 = System.currentTimeMillis();
+		long t2 = 0;
 		graph = ingraph;
 		// 如果type为1，则调用pagerank， 获取排好序的page rank list
 		if (type == 1) {
-			return sortedRank(calcPageRank(graph));
+			ArrayList<Entry<Integer, Double>> result = sortedRank(calcPageRank(graph));
+			 t2 = System.currentTimeMillis();
+			 System.out.println("pagerank time cost " + (t2 - t1)/1000.0);
+			return result;
 		}
 		return null;
 	}

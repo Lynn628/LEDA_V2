@@ -9,9 +9,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import com.seu.ldea.commonutil.BuildFromFile;
 import com.seu.ldea.entity.ResourceInfo;
 import com.seu.ldea.entity.TimeSpan;
-import com.seu.ldea.util.BuildFromFile;
 
 /**
  * 把LabelClasswithtime 中的classPTMap转化为Interactive matrix

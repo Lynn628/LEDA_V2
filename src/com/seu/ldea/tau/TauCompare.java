@@ -8,6 +8,9 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Map.Entry;
 
+import com.seu.ldea.bigdecimal.TauCalculationBigDecimal;
+import com.seu.ldea.bigdecimal.TauRescalDistanceBigDecimal;
+
 /**
  * 比较规格化embedding文件后Tau值的变化
  * 
@@ -25,7 +28,7 @@ public class TauCompare {
 		String tripleFile = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\" + rescalInputFileName
 				+ "\\triple";
 		FileWriter fileWriter = new FileWriter("C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\TauResult\\"
-				+ rescalInputFileName + "-TauCompare-ReverseCosine.txt");
+				+ rescalInputFileName + "-TauCompare-ReverseCosine3.txt");
 		BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
 		bufferedWriter.write("Tau compare data set is " + rescalInputFileName);
 		bufferedWriter.newLine();
@@ -115,21 +118,21 @@ public class TauCompare {
 		ArrayList<Entry<Integer, Double>> rescalDistanceList = TauRescalDistance
 				.sortVectorDistance(rescalDistanceMatrix);
        
-	/*	String resultFile = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\TauResult\\noramlizedtauResult-"
+		String resultFile = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\TauResult\\noramlizedtauResultTEST-"
 				+ tauResultName;
 
-		FileWriter fileWriter = new FileWriter(resultFile);*/
+		FileWriter fileWriter = new FileWriter(resultFile);
 		int length = rescalDistanceList.size();
 		int[] standard = new int[length];
 		int[] comparison = new int[length];
 		for (int i = 0; i < length; i++) {
 			standard[i] = standardDistanceList.get(i).getKey();
 			comparison[i] = rescalDistanceList.get(i).getKey();
-			/*fileWriter.write(standard[i] + "   " + standardDistanceList.get(i).getValue() + " ; " + comparison[i] + "  "
-					+ rescalDistanceList.get(i).getValue() + "\n");*/
-			//fileWriter.flush();
+			fileWriter.write(standard[i] + "   " + standardDistanceList.get(i).getValue() + " ; " + comparison[i] + "  "
+					+ rescalDistanceList.get(i).getValue() + "\n");
+			fileWriter.flush();
 		}
-		//fileWriter.close();
+		fileWriter.close();
 
 		double tauValue = new TauCalculation().calculateTau(standard, comparison);
 		return tauValue;

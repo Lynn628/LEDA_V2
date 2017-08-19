@@ -1,4 +1,4 @@
-package com.seu.ldea.tau;
+package com.seu.ldea.bigdecimal;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -6,17 +6,19 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Map.Entry;
 
+import com.seu.ldea.tau.StandardDistance;
+
+import java.util.Scanner;
+
 /**
- * Tau的计算，向量距离不是bigdecimal类型的
- * 1-2*reversion/(n*(n-1))
- * @author Lynn
- *
+ * 计算tau值选用Cosine-2计算向量距离效果较好
+ * @author Lynn 将两种距离进行tau值计算
  */
-public class TauCalculation {
-	 private long counter = 0;
+public class TauCalculationBigDecimal {
+	private  long counter = 0;
 	// 排序计算kendall tau值
-	public  double calculateTau(int[] standard, int[] comparison) {
-		
+	public  BigDecimal calculateTau(int[] standard, int[] comparison) {
+
 		if (standard.length != comparison.length) {
 			throw new IllegalArgumentException("Array dimensions is not same");
 		}
@@ -32,7 +34,7 @@ public class TauCalculation {
 		}
 		//BigDecimal distance = insertionCount(bIndex);
 		BigDecimal distance = mergeCount(bIndex);
-		System.out.println("distance is " + distance + " N is " + N + " bigN " + bigN);
+		System.out.println("distance is " + distance + " N is " + N + "bigN" + bigN);
 		// Kendell correlation co-efficient
 		// BigDecimal nBigDecimal = new BigDecimal(N * (N - 1) );
 		BigDecimal denominator = bigN.multiply(bigN.subtract(BigDecimal.valueOf(1)));
@@ -43,10 +45,26 @@ public class TauCalculation {
 		//BigDecimal inconsist = distance.multiply(BigDecimal.valueOf(4));
 		// BigDecimal divide = mutiple.divide(nBigDecimal, 5, 4);
 		BigDecimal kendellTau = one.subtract(nominator.divide(denominator, 5, 4));
-		System.out.println("Tau  " + kendellTau);
-		return kendellTau.doubleValue();
+		System.out.println("Tau bigDecimal " + kendellTau);
+		return kendellTau;
 	}
 
+	// 使用插入排序方法求逆序数
+	public  BigDecimal insertionCount(int[] a) {
+		BigDecimal counter = new BigDecimal(0);
+		for (int i = 1; i < a.length; i++) {
+			for (int j = i; j > 0 && a[j] < a[j - 1]; j--) {
+				int temp = a[j];
+				a[j] = a[j - 1];
+				a[j - 1] = temp;
+				counter = counter.add(BigDecimal.valueOf(1));
+				// System.out.println(counter);// 插入排序每交换一次，就存在一对逆序数
+			}
+		}
+
+		return counter;
+	}
+	
 	
 	// 使用归并排序方法求逆序数
     private  int[] aux;
@@ -86,46 +104,42 @@ public class TauCalculation {
             }
         }
     }
-	// 使用插入排序方法求逆序数
-	public  long insertionCount(int[] b) {
-		long counter = 0;
-		for (int i = 1; i < b.length; i++) {
-			for (int j = i; j > 0 && b[j] < b[j - 1]; j--) {
-				//System.out.println("a[j] is " + b[j] + "a[j-1] is " + b[j-1]);
-				int temp = b[j];
-				b[j] = b[j - 1];
-				b[j - 1] = temp;
-				//System.out.println("a[j] is " + b[j] + "a[j-1] is " + b[j-1]);
-				counter++;
-				//System.out.println("counter- " + counter);
-			}
-		}
-		for(int i = 0; i< b.length; i++)
-			System.out.print(b[i] + " " );
-		return counter;
-	}
+	
 
+	
 	public static void main(String[] args) throws IOException {
 		long t1 = System.currentTimeMillis();
 
-		String rescalEmbending = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\NormalizedEmbeddingFile\\Normailzed-www-2010-complete-latent10-lambda0.embeddings.txt";
+		Scanner sc = new Scanner(System.in);
+		System.out.println("Please input embedding fileName");
+		String fileName = sc.nextLine();
+		System.out.println("Please input latentNumber");
+		int latentNumber = Integer.valueOf(sc.nextLine());
+		System.out.println("Please input lambda number ");
+		int lambdaNumber = Integer.valueOf(sc.nextLine());
+		System.out.println("Please input distance calculation method ");
+		// int dimension = Integer.valueOf(sc.nextLine());
+		String method = sc.nextLine();
+		sc.close();
+		// 分解好的矩阵
+		String rescalEmbending = "D:\\RESCAL\\Ext-RESCAL-master\\Ext-RESCAL-master\\" + fileName + "-latent"
+				+ latentNumber + "-lambda" + lambdaNumber + ".embeddings.txt";
 		// RESCAL张量的对象距离矩阵
-		Double[][] rescalDistanceMatrix = TauRescalDistance.getVectorDistanceMatrix(rescalEmbending, "Cosine-2");
-	   // TauRescalDistance.printMatrix(rescalDistanceMatrix);
-		//System.out.println(rescalDistanceMatrix.length );
+		BigDecimal[][] matrix1 = TauRescalDistanceBigDecimal.getVectorDistanceMatrix(rescalEmbending, method);
+	    TauRescalDistanceBigDecimal.printMatrix(matrix1);
+		System.out.println(matrix1.length );
 		// 将向量距离排序
-		ArrayList<Entry<Integer, Double>> rescalDistanceList = TauRescalDistance.sortVectorDistance(rescalDistanceMatrix);
-		String fileName = "www-2010-complete";
+		ArrayList<Entry<Integer, BigDecimal>> rescalDistanceList = TauRescalDistanceBigDecimal.sortVectorDistance(matrix1,
+				"BigDecimal");
 		String entityFile = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\" + fileName + "\\entity-ids";
 		String tripleFile = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\" + fileName + "\\triple";
 		// 标准距离
-		int[][] matrix = StandardDistance.getMatrix(entityFile, tripleFile);
-		int[][] standardDistanceMatrix  = StandardDistance.floydDistance(matrix);
+		int[][] matrix2 = StandardDistance.getMatrix(entityFile, tripleFile);
+		int[][] shortF = StandardDistance.floydDistance(matrix2);
 		// 标准距离排序
-		ArrayList<Entry<Integer, Integer>> standardDistanceList = StandardDistance.sortStandard(standardDistanceMatrix);
-		
-		String resultFile = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\TauResult\\tauResult-" + fileName;
-				
+		ArrayList<Entry<Integer, Integer>> standardDistanceList = StandardDistance.sortStandard(shortF);
+		String resultFile = "D:\\RESCAL\\Ext-RESCAL-master\\Ext-RESCAL-master\\tauResult\\tauResult-" + fileName
+				+ "-latent" + latentNumber + "-lambda" + lambdaNumber + "-" + method + ".txt";
 		FileWriter fileWriter = new FileWriter(resultFile);
 		int length = rescalDistanceList.size();
 		int[] standard = new int[length];
@@ -137,14 +151,13 @@ public class TauCalculation {
 					+ rescalDistanceList.get(i).getValue() + "\n");
 		}
 		fileWriter.close();
-		/* int[] standard = new int[]{0, 1, 2, 3, 4, 5, 6, 7};
-		 int[] comparison = new int[]{7,6,5,4,3,2,1,0};*/
-	/*	int[] standard1 = new int[]{0,3,1,6,2,5,4};
-		 int[] comparison1 = new int[]{1,0,3,6,4,2,5};*/
-		System.out.println(new TauCalculation().calculateTau(standard, comparison));
+		// int[] standard1 = new int[]{0, 1, 2, 3, 4, 5, 6, 7};
+		// int[] comparison1 = new int[]{2,0,3,1,4,6,7,5};
+		System.out.println(new TauCalculationBigDecimal().calculateTau(standard, comparison));
 		long t2 = System.currentTimeMillis();
 		System.out.println("Calculation time cost " + (t2 - t1) / 60000.0);
 		System.out.println("********************************");
 
 	}
+//Cosine-abs-square, Euclidean, Cosine-2
 }

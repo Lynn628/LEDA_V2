@@ -5,7 +5,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import com.seu.ldea.util.URIUtil;
+import com.seu.ldea.timeutil.URIUtil;
 
 import de.unihd.dbs.heideltime.standalone.*;
 import de.unihd.dbs.heideltime.standalone.components.impl.XMIResultFormatter;

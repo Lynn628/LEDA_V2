@@ -27,30 +27,30 @@ import com.seu.ldea.virtuoso.SparqlQuery;
 import edu.stanford.nlp.pipeline.AnnotationPipeline;
 import edu.stanford.nlp.time.TimeExpression;
 import edu.stanford.nlp.util.CoreMap;
-
-public class LabelResourceWithTime {
+/**
+ * 静态时间抽取类，所有的方法和成员变量都是静态的，都可以直接通过类名调用
+ * @author Lynn
+ *
+ */
+public class LabelResourceWithTimeStatic {
 	/**
 	 * Resource map,存储资源和资源的id
 	 */
 	// public static HashMap<String, Integer> resourceMap = new HashMap<>();
-	public HashMap<String, Integer> rMap;
+	public static HashMap<String, Integer> rMap;
 	/**
 	 * Predicate map,存储谓语和谓语的id
 	 */
 	// public static HashMap<String, Integer> predicateMap = new HashMap<>();
-	public HashMap<String, Integer> pMap;
+	public static HashMap<String, Integer> pMap;
 
 	// 存储主语id和谓语id和时间区间set，即每个resource的时间信息
-	public HashMap<Integer, HashMap<Integer, HashSet<TimeSpan>>> timeInfoMap = new HashMap<>();
+	public static HashMap<Integer, HashMap<Integer, HashSet<TimeSpan>>> timeInfoMap = new HashMap<>();
 	/**
 	 * 每一个资源对象存在一个关于其时间信息的描述信息
 	 */
-	public HashMap<Integer, ResourceInfo> resourceTimeInfo = new HashMap<>();
-    
-	public HashMap<Integer, ResourceInfo> getResourceTimeInfo() {
-		return resourceTimeInfo;
-	}
-	
+	public static HashMap<Integer, ResourceInfo> resourceTimeInfo = new HashMap<>();
+
 	/**
 	 * 
 	 * @param dataset
@@ -61,7 +61,7 @@ public class LabelResourceWithTime {
 	 */
 	// public static HashMap<Integer, ResourceInfo> timeExtraction(Dataset
 	// dataset)
-	public HashMap<Integer, ResourceInfo> timeExtraction(Dataset dataset, String dstName, String dirPath) throws IOException {
+	public static HashMap<Integer, ResourceInfo> timeExtraction(Dataset dataset, String dstName, String dirPath) throws IOException {
 
 		AnnotationPipeline pipeline = SUTimeExtraction.PipeInit();
 		ResultSet resultSet = SparqlQuery.getAllTriplesResultSet(dataset);
@@ -186,7 +186,7 @@ public class LabelResourceWithTime {
 	 * @param uri
 	 * @return
 	 */
-	public String getTimeInLiteral(List<CoreMap> list, String uri) {
+	public static String getTimeInLiteral(List<CoreMap> list, String uri) {
 		    double maxPercentage = 0;
 		    String timeInfo = "";
 		    String result = "";
@@ -212,7 +212,7 @@ public class LabelResourceWithTime {
                
 	}
 
-	public HashMap<Integer, String> reverseMap(HashMap<String, Integer> resourceMap) {
+	public static HashMap<Integer, String> reverseMap(HashMap<String, Integer> resourceMap) {
 		HashMap<Integer, String> reversedMap = new HashMap<>();
 		Iterator<Entry<String, Integer>> iterator = resourceMap.entrySet().iterator();
 		while (iterator.hasNext()) {
@@ -225,14 +225,14 @@ public class LabelResourceWithTime {
 	}
 
 	/**
-	 * 依据virtuosofilebuild生成的entity-id文件和words文件来获取entity和predicate对应的ID
+	 * 依据virtuosofilebuild生成的entity-id文件和words文件来获取entity和predicate对应的Id
 	 * 
 	 * @param type
 	 * @param dir
 	 * @return
 	 * @throws IOException
 	 */
-	public HashMap<String, Integer> getNodeIdMap(int type, String dir) throws IOException {
+	public static HashMap<String, Integer> getNodeIdMap(int type, String dir) throws IOException {
 		HashMap<String, Integer> nodeMap = new HashMap<>();
 		String path = "";
 		if (type == 1) {
@@ -263,7 +263,7 @@ public class LabelResourceWithTime {
 	 * @param pString
 	 * @param isSelf:判断是否是当前资源自身携带的
 	 */
-	public void labelResource(Integer nodeId, String pString, String time) {
+	public static void labelResource(Integer nodeId, String pString, String time) {
 		// predicate和此predicate上的时间区间Map
 		HashMap<String, HashSet<TimeSpan>> predicateTimePairs = resourceTimeInfo.get(nodeId).getPredicateTimeMap();
 		TimeSpan span = new TimeSpan(time, time);
@@ -282,8 +282,7 @@ public class LabelResourceWithTime {
 	public static void main(String[] args) throws IOException {
 		long t1 = System.currentTimeMillis();
 		Dataset dataset = new Dataset("jdbc:virtuoso://localhost:1111", "http://LDEA/SWCC.org", "dba", "dba");
-		LabelResourceWithTime labelResource = new LabelResourceWithTime();
-		labelResource.timeExtraction(dataset, "SWCCTimeTest4",
+		timeExtraction(dataset, "SWCCTimeTest4",
 				"C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\SWCC2");
 		long t2 = System.currentTimeMillis();
 		System.out.println("time cost ----- " + (t2-t1)/1000);

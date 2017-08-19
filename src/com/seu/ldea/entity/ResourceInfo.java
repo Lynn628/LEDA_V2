@@ -2,7 +2,6 @@ package com.seu.ldea.entity;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -105,6 +104,7 @@ public class ResourceInfo {
 		for (int i = 0; i < bArr1.length; i++) {
 		//	System.out.println("entity id is " + bArr2[i] + " class id is " + bArr1[i]);
 			int entityId = Integer.parseInt(bArr2[i]);
+			
 			int classId = Integer.parseInt(bArr1[i]);
 		    resourceType.put(entityId, classId);
 	  }
@@ -112,6 +112,31 @@ public class ResourceInfo {
 	}
 	
 
+	/**
+	 * 从文件获取有类型的实体以及其实体类型
+	 * @param dir
+	 * @return
+	 * @throws IOException 
+	 */
+	public static HashMap<Integer, Integer> getReourceTypeMap2(String dir) throws IOException{
+		int num = 0;
+		HashMap<Integer, Integer> resourceType = new HashMap<>();
+		String tripleFile = dir + "\\triple";
+		FileReader fileReader = new FileReader(tripleFile);
+		BufferedReader bufferedReader = new BufferedReader(fileReader);
+		String line = "";
+		while ((line = bufferedReader.readLine()) != null) {
+		//	int index = line.indexOf(":");
+			String[] lineArr = line.split(" ");
+			if(Integer.parseInt(lineArr[1]) == 1){
+				resourceType.put(Integer.parseInt(lineArr[0]), Integer.parseInt(lineArr[2]));
+		
+			}
+		}
+	    bufferedReader.close();
+	    return resourceType;
+	}
+	
 	/**
 	 * 从文件每个资源的id 和 URI映射
 	 * @param dir
@@ -134,7 +159,12 @@ public class ResourceInfo {
 		return resourceURI;
 	}
 	
-	
+	/**
+	 * 获取数据集的所有类
+	 * @param dir，RESCAL输入文件的目录地址
+	 * @return
+	 * @throws IOException
+	 */
 	public  static HashMap<Integer, String > getAllClass(String dir) throws IOException{
 		HashMap<Integer, String> result = new HashMap<>();
 		HashMap<Integer, String> uriMap =  getReourceURIMap(dir);

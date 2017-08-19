@@ -7,9 +7,16 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
 
+
 import org.jgrapht.Graph;
+import org.jgrapht.UndirectedGraph;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
+import org.jgrapht.graph.SimpleGraph;
+
+import com.github.jsonldjava.core.RDFDataset.Node;
+
+import riotcmd.infer;
 
 /**
  * 1.依据triple文件和entity-id构建JGrapht图 2.获取每个顶点的邻接顶点集合，利用triple文件，或者利用JGrapht获取邻接顶点
@@ -51,7 +58,7 @@ public class GraphUtil {
 		}
 		br1.close();
 		br2.close();
-
+         // System.out.println("Graph size" + graph.vertexSet().size());
 		return graph;
 	}
 
@@ -70,6 +77,7 @@ public class GraphUtil {
 	public static  Graph<Integer, DefaultEdge> buildGraph(HashSet<Integer> nodes,
 			HashMap<Integer, HashSet<Integer>> outgoingNeighborsMap, HashMap<Integer, HashSet<Integer>> incomingNeighborsMap){
 		Graph<Integer, DefaultEdge> graph = new DefaultDirectedGraph<>(DefaultEdge.class);
+	
 		Object[] nodesArr = nodes.toArray();
 		for(int i = 0; i < nodesArr.length; i++){
 			for(int j = i+1; j < nodesArr.length; j++){
@@ -83,11 +91,57 @@ public class GraphUtil {
 					graph.addVertex((Integer)nodesArr[j]);
 					graph.addEdge((Integer)nodesArr[j], (Integer)nodesArr[i]);
 				}
+				System.out.println("Graph size>>>>> " + graph.vertexSet().size());
 			}
 		}
 		return graph;
 		
 	}
+	
+	
+	public static  Graph<Integer, DefaultEdge> buildGraph2(HashSet<Integer> nodes,
+			HashMap<Integer, HashSet<Integer>> allNeighborMap ){
+		UndirectedGraph<Integer, DefaultEdge> graph = new SimpleGraph<>(DefaultEdge.class);
+	    long t1 = System.currentTimeMillis();
+		//Object[] nodesArr = nodes.toArray();
+		/*for(int i = 0; i < nodesArr.length; i++){
+			for(int j = i+1; j < nodesArr.length; j++){
+				if(allNeighborMap.get(nodesArr[i]).contains(nodesArr[j])){
+					graph.addVertex((Integer)nodesArr[i]);
+					graph.addVertex((Integer)nodesArr[j]);
+					graph.addEdge((Integer)nodesArr[i], (Integer)nodesArr[j]);
+				    
+				}*/
+	    int j = 0;
+		    for(int node : nodes){
+		    	j++;
+		    	graph.addVertex(node);
+		    	if(allNeighborMap.containsKey(node)){
+			    HashSet<Integer> neighborSet = allNeighborMap.get(node);
+			    Object[] nodeNeighborArr = neighborSet.toArray();
+			    for(int i = 0; i < nodeNeighborArr.length; i++){
+			    	int neighbor = (Integer)nodeNeighborArr[i];
+			    	if(nodes.contains(neighbor)){
+						graph.addVertex((Integer)nodeNeighborArr[i]);
+						if(node != neighbor)
+						graph.addEdge(node, (Integer)nodeNeighborArr[i]);
+			    	}
+			    }
+				//System.out.println(j + " : Graph size >>>>" + graph.vertexSet().size() );
+			/*	if(incomingNeighborsMap.get(nodesArr[i]).contains(nodesArr[j])){
+					graph.addVertex((Integer)nodesArr[i]);
+					graph.addVertex((Integer)nodesArr[j]);
+					graph.addEdge((Integer)nodesArr[j], (Integer)nodesArr[i]);
+				}
+			}*/
+		}
+	}
+		long t2 = System.currentTimeMillis(); 
+		System.out.println("Graph Building time cost " + (t2-t1)/1000.0);
+		return graph;
+		
+	}
+	
 
 	/**
 	 * 每个点以及每个点的邻居的map,该点作为起点

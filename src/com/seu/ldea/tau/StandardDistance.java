@@ -52,7 +52,6 @@ public class StandardDistance {
 				String[] item = line.split(" ");
 				int origin = Integer.valueOf(item[0]);
 				int end = Integer.valueOf(item[2]);
-				
 				matrix[origin][end] = 1;
 			}
 			bufferedWriter2.close();
@@ -65,7 +64,11 @@ public class StandardDistance {
 		for (int i = 0; i < length; i++) {
 			for (int j = 0; j < length; j++) {
 				if (i != j && matrix[i][j] != 1) {
+				//if (matrix[i][j] != 1) {
 					matrix[i][j] = INF;
+				}
+				if(i == j){
+					matrix[i][j] = 0;
 				}
 			}
 		}
@@ -107,8 +110,11 @@ public class StandardDistance {
 		LinkedHashMap<Integer, Integer> valueMap = new LinkedHashMap<>();
 		for (int i = 0; i < dimension; i++) {
 			for (int j = 0; j < dimension; j++) {
+				//排除i=j得点，即对角线上的点,不加入排序序列
+			//	if(i != j){
 				int id = i * dimension + j;
 				valueMap.put(id, matrix[i][j]);
+				//}
 				// System.out.println(matrix[i][j]);
 			}
 		}

@@ -17,8 +17,8 @@ import com.seu.ldea.entity.Dataset;
 import com.seu.ldea.entity.ResourceInfo;
 import com.seu.ldea.entity.TimeSpan;
 import com.seu.ldea.history.LabelResourceWithTimeTest;
-import com.seu.ldea.util.SUTimeExtraction;
-import com.seu.ldea.util.URIUtil;
+import com.seu.ldea.timeutil.SUTimeExtraction;
+import com.seu.ldea.timeutil.URIUtil;
 import com.seu.ldea.virtuoso.SparqlQuery;
 
 import edu.stanford.nlp.pipeline.AnnotationPipeline;

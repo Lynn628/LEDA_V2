@@ -58,83 +58,68 @@ public class TauRescalDistance {
 			e.printStackTrace();
 		}
 		Double[][] distanceMatrix = new Double[dimension][dimension];
-		// 添加一个元素初始化矩阵的过程
+	
 		for (int i = 0; i < dimension; i++) {
-			for (int j = 0; j < dimension; j++) {
-				distanceMatrix[i][j] = new Double(0);
-			}
+			for (int j = 0; j < dimension; j++) 
+				distanceMatrix[i][j] = getTwoNodeVectorDistance(i, j, entityVectors, method);
+			
 		}
-		// printMatrix(distanceMatrix);
-		Iterator<Double[]> outerIterator = entityVectors.iterator();
-		int iterNum = 0;
-		while (outerIterator.hasNext()) {
-			iterNum++;
-			Double[] outerVector = outerIterator.next();
-			// System.out.println(outerVector.toString());
-			int outerId = entityVectors.indexOf(outerVector);
-			// 内层迭代器定位到指定的位置
-			Iterator<Double[]> innerIterator = entityVectors.iterator();
-			for (int i = 0; i < iterNum - 1; i++) {
-				innerIterator.next();
-			}
-			// 计算剩余所有id与当前id之间的距离
-			while (innerIterator.hasNext()) {
-				Double[] innerVector = innerIterator.next();
-				// System.out.println(innerVector.toString());
-				int innerId = entityVectors.indexOf(innerVector);
-				if (method.equals("Euclidean")) {
-					Double sum = new Double(0);
-					for (int i = 0; i < latentNum; i++) {
-						sum += (outerVector[i] - innerVector[i]) * (outerVector[i] - innerVector[i]);
-					}
-					// 用平方代替距离
-					Double distance = sum;
-					// System.out.println("outerId and InnerId is -- >" +
-					// outerId + " " + innerId);
-					distanceMatrix[outerId][innerId] = distance;
-					distanceMatrix[innerId][outerId] = distance;
-				} else {
-					Double numerator = new Double(0);
-					Double f1 = new Double(0);
-					Double f2 = new Double(0);
-					for (int i = 0; i < latentNum; i++) {
-						numerator += outerVector[i] * innerVector[i];
-						f1 += outerVector[i] * outerVector[i];
-						f2 += innerVector[i] * innerVector[i];
-					}
-					// denominator-分母，此处分母为cosine公式分母的平方
-					Double denominator = f1 * f2;
-					if(denominator == 0){
-						System.out.println(">>>>>denominator is zero >>>>>>>" + f1 + ">>>" + f2);
-						
-					}
-					// 距离计算选用Cosine的平方
-					if (method.equals("Cosine-square")) {
-						// 此处分子为cosine公式分子的平方
-						Double distance = (numerator * numerator) / denominator;
-						distanceMatrix[outerId][innerId] = distance;
-						distanceMatrix[innerId][outerId] = distance;
-						// 距离计算选用cosine计算公式的分子除以分母的平方
-					} else if (method.equals("Cosine-1")) {
-						Double distance = numerator / denominator;
-						distanceMatrix[outerId][innerId] = distance;
-						distanceMatrix[innerId][outerId] = distance;
-						// System.out.println(outerId + "-" + innerId + "-" +
-						// distance);
-						// 距离计算选用cosine计算公式的分子绝对值除以分母的平方
-					} else if (method.equals("Cosine-2")) {
-						Double distance = numerator / denominator;
-						if (distance <= 0)
-							distance = -distance;
-						distanceMatrix[outerId][innerId] = distance;
-						distanceMatrix[innerId][outerId] = distance;
-					}
-				}
-			}
-
-		}
+		
 		return distanceMatrix;
 	}
+	
+	
+	public static double getTwoNodeVectorDistance(int index1, int index2, ArrayList<Double[]> entityVectors, String method) {
+		
+        Double[] outerVector = entityVectors.get(index1);
+        Double[] innerVector = entityVectors.get(index2);
+        int latentNum = innerVector.length;
+        Double distance = new Double(0);
+		if (method.equals("Euclidean")) {
+			Double sum = new Double(0);
+			for (int i = 0; i < latentNum ; i++) {
+				sum += (outerVector[i] - innerVector[i]) * (outerVector[i] - innerVector[i]);
+			}
+			// 用平方代替距离
+			distance = sum;
+		
+		} else {
+			Double numerator = new Double(0);
+			Double f1 = new Double(0);
+			Double f2 = new Double(0);
+			for (int i = 0; i < latentNum; i++) {
+				numerator += outerVector[i] * innerVector[i];
+				f1 += outerVector[i] * outerVector[i];
+				f2 += innerVector[i] * innerVector[i];
+			}
+			// denominator-分母，此处分母为cosine公式分母的平方
+			Double denominator = f1 * f2;
+			if(denominator == 0){
+				System.out.println(">>>>>denominator is zero >>>>>>>" + f1 + ">>>" + f2);
+				
+			}
+			// 距离计算选用Cosine的平方
+			if (method.equals("Cosine-square")) {
+				// 此处分子为cosine公式分子的平方
+				 distance = (numerator * numerator) / denominator;
+				
+				// 距离计算选用cosine计算公式的分子除以分母的平方
+			} else if (method.equals("Cosine-1")) {
+				 distance = numerator / denominator;
+				
+				// System.out.println(outerId + "-" + innerId + "-" +
+				// distance);
+				// 距离计算选用cosine计算公式的分子绝对值除以分母的平方
+			} else if (method.equals("Cosine-2")) {
+				 distance = numerator / denominator;
+				if (distance <= 0)
+					distance = -distance;
+			
+			}
+		}
+	
+return distance;
+}
 
 	public static ArrayList<Entry<Integer, Double>> sortVectorDistance(Double[][] matrix) {
 		int dimension = matrix.length;
@@ -142,8 +127,11 @@ public class TauRescalDistance {
 		LinkedHashMap<Integer, Double> valueMap = new LinkedHashMap<>();
 		for (int i = 0; i < dimension; i++) {
 			for (int j = 0; j < dimension; j++) {
+				//排除对角线上的点
+				//if(i != j){
 				int id = i * dimension + j;
 				valueMap.put(id, matrix[i][j]);
+				//}
 				// System.out.println(matrix[i][j]);
 			}
 		}

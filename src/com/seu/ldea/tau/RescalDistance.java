@@ -6,7 +6,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 /**
  * 获取rescal两点之间的距离
@@ -23,7 +22,7 @@ public class RescalDistance {
 	 *
 	 * @param method:距离计算方法：Euclidean或者Cosine
 	 * @return 相应实体向量之间的距离
-	 */
+	 *//*
 	public static HashMap<Integer, HashMap<Integer, BigDecimal>> calcVectorDistance(String filePath, String method) {
 		System.out.println("-------begin of vector distance calculation-------");
 		long t1 = System.currentTimeMillis();
@@ -113,7 +112,7 @@ public class RescalDistance {
 		System.out.println("End of vector calculation------time cost -------" + (t2 - t1) / 1000 + " s");
 		return result;
 	}
-
+*/
 	public static ArrayList<BigDecimal[]> getNodeVector(String filePath) {
 		// 存储所有entity以及对应的分解的出的rank维的向量
 		ArrayList<BigDecimal[]> entityVectors = new ArrayList<>();
@@ -146,6 +145,8 @@ public class RescalDistance {
 		return entityVectors;
 	}
 
+	
+	
 	public static BigDecimal calcVectorDistance(ArrayList<BigDecimal[]> entityVectors, String method, int sourceId,
 			int dstId) {
 
@@ -191,6 +192,6 @@ public class RescalDistance {
 
 	public static void main(String[] args) {
 		String embeddingFilePath = "D:\\RESCAL\\Ext-RESCAL-master\\Ext-RESCAL-master\\SWCC2-latent10-lambda0.embeddings.txt";
-		calcVectorDistance(embeddingFilePath, "Cosine-2");
+	//	calcVectorDistance(embeddingFilePath, "Cosine-2");
 	}
 }

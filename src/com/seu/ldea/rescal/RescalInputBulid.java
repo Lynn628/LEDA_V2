@@ -5,7 +5,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
-import java.util.Scanner;
 
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
@@ -13,9 +12,13 @@ import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 
 import com.seu.ldea.entity.Dataset;
-import com.seu.ldea.time.LabelResourceWithTime;
+import com.seu.ldea.time.LabelResourceWithTimeStatic;
 import com.seu.ldea.virtuoso.SparqlQuery;
-
+/**
+ * 从Virtuoso读取三元组，创建RESCAL的输入文件
+ * @author Lynn
+ *
+ */
 public class RescalInputBulid {
     
 	
@@ -142,7 +145,7 @@ public class RescalInputBulid {
 		 ResultSet resultSet = virtuosoQueryExecution.execSelect();*/
 		 rescalInputBuild(dataset , rescalFileName);
 		 System.out.println(dataset.getpMap().size());
-		 LabelResourceWithTime.timeExtraction(dataset, timeFileName, rescalFilePath);
+		 LabelResourceWithTimeStatic.timeExtraction(dataset, timeFileName, rescalFilePath);
 		 long t2 = System.currentTimeMillis();
 		 System.out.println(" time cost " + (t2-t1)/1000);
 	  }

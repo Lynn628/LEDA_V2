@@ -12,6 +12,7 @@ import java.util.Map.Entry;
 import com.seu.ldea.cluster.GraphUtil;
 import com.seu.ldea.entity.Dataset;
 import com.seu.ldea.entity.ResourceInfo;
+import com.seu.ldea.history.SliceDataBuildOldVersion2;
 
 /**
  * 在Slice data build2 的基础上，创建时间片的时候不把class uri加进来 
@@ -344,7 +345,7 @@ public class SliceDataBuildWithoutClassURI {
 		String path2 = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\TimeExtractionResultFile\\Jamendo-ClassPTMap-0724.txt";
 		String rescalInputDir = "C:\\Users\\Lynn\\Desktop\\Academic\\LinkedDataProject\\rescalInput\\Jamendo";
 		
-		LinkedHashMap<Integer, HashSet<Integer>> timeEntitySlices = DatasetSegmentation2.initDataSegment(path, path2, rescalInputDir).segmentDataSet(161771, "http://purl.org/dc/elements/1.1/date");
+		LinkedHashMap<Integer, HashSet<Integer>> timeEntitySlices = DatasetSegmentation.initDataSegment(path, path2, rescalInputDir).segmentDataSet(161771, "http://purl.org/dc/elements/1.1/date");
          for(Entry<Integer, HashSet<Integer>> entry : timeEntitySlices.entrySet()){
         	 System.out.println(" Slice #-- " + entry.getKey() + " size " + entry.getValue().size());
         	 for(Integer item : entry.getValue()){
@@ -354,7 +355,7 @@ public class SliceDataBuildWithoutClassURI {
            }
          
 		
-		LinkedHashMap<Integer, HashSet<Integer>> sliceNodes = SliceDataBuild2.initSliceDataBuild(timeEntitySlices, rescalInputDir).getSliceLinkedNodes(rescalInputDir, -1, 161771);
+		LinkedHashMap<Integer, HashSet<Integer>> sliceNodes = SliceDataBuildOldVersion2.initSliceDataBuild(timeEntitySlices, rescalInputDir).getSliceLinkedNodes(rescalInputDir, -1, 161771);
 		        
 		for(Entry<Integer, HashSet<Integer>> entry : sliceNodes.entrySet()){
 		        	 System.out.println(" Slice # " + entry.getKey() + " size " + entry.getValue().size());
